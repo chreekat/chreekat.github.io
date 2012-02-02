@@ -3,3 +3,6 @@ Hello world!
 ```haskell
 import HelloWorld
 ```
+
+Does github pages
+use github-flavored markdown?
