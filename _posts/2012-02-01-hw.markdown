@@ -1,8 +1,8 @@
 Hello world!
 
-```haskell
+{% highlight haskell %}
 import HelloWorld
-```
+{% endhighlight %}
 
 Does github pages
 use github-flavored markdown?
