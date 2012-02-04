@@ -1,3 +1,8 @@
+---
+layout: default
+title: HW
+---
+
 Hello world!
 
 {% highlight haskell %}
