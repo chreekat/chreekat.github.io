@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title: More Fun with Yesod Authorization
 ---
 
