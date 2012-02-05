@@ -22,7 +22,7 @@ True` == "Post a Blog".
 
 To resolve the first point, I propose this:
 
-{% template haskell %}
+{% highlight haskell %}
 -- Permission replacement
 data Credential = LoggedIn | IsAdmin
 
@@ -32,7 +32,7 @@ requiredCredentials :: Route Blog -> Bool -> [Credential]
 requiredCredentials BlogR      True = [IsAdmin]
 requiredCredentials (EntryR _) True = [LoggedIn]
 requiredCredentials _          _    = []
-{% endtemplate %}
+{% endhighlight %}
 
 Note that this new function does the same thing as the one it replaces, but
 reading it gives us more information: we know the action from the route, and
@@ -40,19 +40,19 @@ we also know what credentials a user needs to perform that action.
 
 If that doesn't immediately seem crucial, consider that many actions may be satisfied by the same credential. If I have a box with a key, it is assumed that I may do anything with the _contents_ of that box provided I have the key. In other words,
 
-{% template haskell %}
+{% highlight haskell %}
 data Credentials = HasKey
 
 requiredCredentials PutInBoxR ... = [HasKey BoxID]
 requiredCredentials TakeFromBoxR  = [HasKey BoxID]
-{% endtemplate %}
+{% endhighlight %}
 
 With Permissions, either you write separate permissions that do the same thing (GetBox, PutBox), or you break your semantic model and use a single Permission for both ("permission to Box?")
 
 For the second point, note that `isAuthorizedTo` can be written like so (with a
 couple more name changes to sound sensible with `Credential`):
 
-{% template haskell %}
+{% highlight haskell %}
 isAuthorizedTo :: Maybe (Entity User)
                -> [Credential]
                -> YesodDB sub Blog AuthResult
@@ -61,4 +61,4 @@ Just u  `isAuthorizedTo` ps = foldM hasCred Authorized ps
   where
     hasCred Authorized p = u `hasCredential` p
     hasCred badAuth    _ = return badAuth
-{% endtemplate %}
+{% endhighlight %}
