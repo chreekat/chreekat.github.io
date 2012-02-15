@@ -33,12 +33,12 @@ you, dear reader, with the list of questions I was asked:
     that I couldn't offer a very detailed description.
 
     Of course, worrying about the specifics of the "complex project" is a rather
-    simplistic approach to the question. What is its true purpose? For one, it's
-    a test of communication skills, which further explains my struggle to answer
-    it. I communicate very well with the written word (including real-time chat)
-    but I know my verbal skills can be weak. Yet people often say I explain
-    things very well, so maybe there's some anxiety in a business setting that
-    trips up my tongue.
+    simplistic approach to the question. What is its true purpose? At the very
+    least it is a test of communication skills, which further explains my
+    struggle to answer it. I communicate very well with the written word
+    (including real-time chat) but I know my verbal skills can be weak. Yet
+    people often say I explain things very well, so maybe there's some anxiety
+    in a business setting that trips up my tongue.
 
     Going deeper yet, I wonder if saying, "There's no complex problems, only
     large collections of simple problems," would get me positive or negative
