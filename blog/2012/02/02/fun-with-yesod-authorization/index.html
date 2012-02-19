@@ -5,12 +5,13 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Still Testing</title>
+  <title>More Fun with Yesod Authorization - Still Testing</title>
   <meta name="author" content="Bryan Richter">
 
   
-  <meta name="description" content="I am trying to use xstow to manage deploying a set of scripts to ~/bin. However,
-both the version installed on Ubuntu 11.10 and a version compiled &hellip;">
+  <meta name="description" content="I was inspired by Felipe Lessa&#8217;s post about abstracting Yesod
+permissions. Thanks for writing it,
+Felipe! I had only just discovered &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +20,7 @@ both the version installed on Ubuntu 11.10 and a version compiled &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://chreekat.github.com">
+  <link rel="canonical" href="http://chreekat.github.com/blog/2012/02/02/fun-with-yesod-authorization">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -75,111 +76,12 @@ both the version installed on Ubuntu 11.10 and a version compiled &hellip;">
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2012/02/08/trouble-with-xstow/">Trouble With Xstow</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-02-08T00:00:00-08:00" pubdate data-updated="true">8<span>th</span> Feb, 2012</time>
-        
-         | <a href="/blog/2012/02/08/trouble-with-xstow/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I am trying to use xstow to manage deploying a set of scripts to ~/bin. However,
-both the version installed on Ubuntu 11.10 and a version compiled from scratch
-do not work as expected.</p>
-
-<h3>Intended Results</h3>
-
-<p>My scripts live in a git repo with the following layout:</p>
-
-<pre><code>~/src/scripts/bin/*
-~/src/scripts/README
-~/src/scripts/...
-</code></pre>
-
-<p>I would like to <em>only</em> install the files under bin/. I assumed the following
-xstow.ini would work:</p>
-
-<pre><code>[matches]
-nignore = bins
-
-[bins]
-dir = /home/b/bin
-follow = false
-</code></pre>
-
-<h3>Actual Results</h3>
-
-<p>The version in the Ubuntu repo seems to do exactly the opposite of what is
-intended: rather than <em>not</em> ignoring files being installed to ~/bin, it <em>does</em>
-ignore them.</p>
-
-<p>The version from source seems to just ignore everything.</p>
-
-<h4>From Ubuntu 11.10 repo</h4>
-
-<pre><code>b@avery:~/src$ xstow -V
-XStow Version 0.5.1 (C) 2002-2003 by Martin Oberzalek
-         regular expression support
-         shell pattern matching support
-         configuration file support
-b@avery:~/src$ xstow -v -n scripts
-SET_LINK: src/scripts/tickler.bashrc =&gt; /home/b/tickler.bashrc
-SET_LINK: src/scripts/README-vimdiffem.md =&gt; /home/b/README-vimdiffem.md
-SET_LINK: src/scripts/README.md =&gt; /home/b/README.md
-SET_LINK: src/scripts/README-tickler.md =&gt; /home/b/README-tickler.md
-SET_LINK: src/scripts/.git =&gt; /home/b/.git
-b@avery:~/src$ 
-</code></pre>
-
-<h4>From source</h4>
-
-<pre><code>b@avery:~/src$ ~/tmp/xstow-1.0.0/src/xstow -V
-XStow Version 1.0.0 (C) 2002-2005 by Martin Oberzalek
-         regular expression support
-         shell pattern matching support
-         configuration file support
-b@avery:~/src$ ~/tmp/xstow-1.0.0/src/xstow -v -n scripts
-
-b@avery:~/src$ 
-</code></pre>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/02/02/fun-with-yesod-authorization/">More Fun With Yesod Authorization</a></h1>
+      <h1 class="entry-title">More Fun With Yesod Authorization</h1>
     
     
       <p class="meta">
@@ -197,14 +99,14 @@ b@avery:~/src$
 
 <time datetime="2012-02-02T00:00:00-08:00" pubdate data-updated="true">2<span>nd</span> Feb, 2012</time>
         
-         | <a href="/blog/2012/02/02/fun-with-yesod-authorization/#disqus_thread">Comments</a>
+         | <a href="#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>I was inspired by Felipe Lessa&#8217;s post about <a href="http://blog.felipe.lessa.nom.br/?p=7">abstracting Yesod
+<div class="entry-content"><p>I was inspired by Felipe Lessa&#8217;s post about <a href="http://blog.felipe.lessa.nom.br/?p=7">abstracting Yesod
 permissions</a>. Thanks for writing it,
 Felipe! I had only just discovered <code>isAuthorized</code>, and that post made me all
 the more excited to go about refactoring my authorization code.</p>
@@ -278,22 +180,16 @@ Just u  `isAuthorizedTo` ps = foldM hasCred Authorized ps
 
 
 </div>
-  
-  
 
 
-    </article>
-  
-  
-    <article>
+  <footer>
+    <p class="meta">
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/02/01/hw/">HW</a></h1>
-    
-    
-      <p class="meta">
-        
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bryan Richter</span></span>
+
+      
 
 
 
@@ -305,39 +201,36 @@ Just u  `isAuthorizedTo` ps = foldM hasCred Authorized ps
   
 
 
-<time datetime="2012-02-01T00:00:00-08:00" pubdate data-updated="true">1<span>st</span> Feb, 2012</time>
-        
-         | <a href="/blog/2012/02/01/hw/#disqus_thread">Comments</a>
-        
-      </p>
+<time datetime="2012-02-02T00:00:00-08:00" pubdate data-updated="true">2<span>nd</span> Feb, 2012</time>
+      
+
+
+    </p>
     
-  </header>
-
-
-  <div class="entry-content"><p>Hello world!</p>
-
-<div>
-  <pre>
-    <code class='haskell'>import HelloWorld</code>
-  </pre>
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://chreekat.github.com/blog/2012/02/02/fun-with-yesod-authorization/" data-via="chreekat" data-counturl="http://chreekat.github.com/blog/2012/02/02/fun-with-yesod-authorization/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
 </div>
 
-
-<p>Does github pages
-use github-flavored markdown?</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  <div class="pagination">
     
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/02/01/hw/" title="Previous Post: HW">&laquo; HW</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/02/08/trouble-with-xstow/" title="next Post: Trouble with xstow">Trouble with xstow &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
 </div>
+
 <aside class="sidebar">
   
     <section>
@@ -362,7 +255,7 @@ use github-flavored markdown?</p>
 <section>
   <h1>Github Repos</h1>
   <ul id="gh_repos">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   
   <a href="https://github.com/chreekat">@chreekat</a> on Github
@@ -392,7 +285,7 @@ use github-flavored markdown?</p>
 <section>
   <h1>Latest Tweets</h1>
   <ul id="tweets">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   <script type="text/javascript">
     $.domReady(function(){
@@ -420,6 +313,7 @@ use github-flavored markdown?</p>
 
   
 </aside>
+
 
     </div>
   </div>

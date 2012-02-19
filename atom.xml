@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Still Testing]]></title>
+  <link href="http://chreekat.github.com/atom.xml" rel="self"/>
+  <link href="http://chreekat.github.com/"/>
+  <updated>2012-02-18T17:25:41-08:00</updated>
+  <id>http://chreekat.github.com/</id>
+  <author>
+    <name><![CDATA[Bryan Richter]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Trouble with xstow]]></title>
+    <link href="http://chreekat.github.com/blog/2012/02/08/trouble-with-xstow/"/>
+    <updated>2012-02-08T00:00:00-08:00</updated>
+    <id>http://chreekat.github.com/blog/2012/02/08/trouble-with-xstow</id>
+    <content type="html"><![CDATA[<p>I am trying to use xstow to manage deploying a set of scripts to ~/bin. However,
+both the version installed on Ubuntu 11.10 and a version compiled from scratch
+do not work as expected.</p>
+
+<h3>Intended Results</h3>
+
+<p>My scripts live in a git repo with the following layout:</p>
+
+<pre><code>~/src/scripts/bin/*
+~/src/scripts/README
+~/src/scripts/...
+</code></pre>
+
+<p>I would like to <em>only</em> install the files under bin/. I assumed the following
+xstow.ini would work:</p>
+
+<pre><code>[matches]
+nignore = bins
+
+[bins]
+dir = /home/b/bin
+follow = false
+</code></pre>
+
+<h3>Actual Results</h3>
+
+<p>The version in the Ubuntu repo seems to do exactly the opposite of what is
+intended: rather than <em>not</em> ignoring files being installed to ~/bin, it <em>does</em>
+ignore them.</p>
+
+<p>The version from source seems to just ignore everything.</p>
+
+<h4>From Ubuntu 11.10 repo</h4>
+
+<pre><code>b@avery:~/src$ xstow -V
+XStow Version 0.5.1 (C) 2002-2003 by Martin Oberzalek
+         regular expression support
+         shell pattern matching support
+         configuration file support
+b@avery:~/src$ xstow -v -n scripts
+SET_LINK: src/scripts/tickler.bashrc =&gt; /home/b/tickler.bashrc
+SET_LINK: src/scripts/README-vimdiffem.md =&gt; /home/b/README-vimdiffem.md
+SET_LINK: src/scripts/README.md =&gt; /home/b/README.md
+SET_LINK: src/scripts/README-tickler.md =&gt; /home/b/README-tickler.md
+SET_LINK: src/scripts/.git =&gt; /home/b/.git
+b@avery:~/src$ 
+</code></pre>
+
+<h4>From source</h4>
+
+<pre><code>b@avery:~/src$ ~/tmp/xstow-1.0.0/src/xstow -V
+XStow Version 1.0.0 (C) 2002-2005 by Martin Oberzalek
+         regular expression support
+         shell pattern matching support
+         configuration file support
+b@avery:~/src$ ~/tmp/xstow-1.0.0/src/xstow -v -n scripts
+
+b@avery:~/src$ 
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[More Fun with Yesod Authorization]]></title>
+    <link href="http://chreekat.github.com/blog/2012/02/02/fun-with-yesod-authorization/"/>
+    <updated>2012-02-02T00:00:00-08:00</updated>
+    <id>http://chreekat.github.com/blog/2012/02/02/fun-with-yesod-authorization</id>
+    <content type="html"><![CDATA[<p>I was inspired by Felipe Lessa&#8217;s post about <a href="http://blog.felipe.lessa.nom.br/?p=7">abstracting Yesod
+permissions</a>. Thanks for writing it,
+Felipe! I had only just discovered <code>isAuthorized</code>, and that post made me all
+the more excited to go about refactoring my authorization code.</p>
+
+<p>Unfortunately I had a little trouble working Felipe&#8217;s method into my own
+project. This was probably due in no small part to my too-recent discovery of
+<code>isAuthorized</code> and the <code>AuthResult</code> type. After much tinkering, I narrowed the
+difficulties down to just one (and a half) points of contention:</p>
+
+<ol>
+<li>Permission values are taken to mean actions: &#8220;Permission to &lt;do
+action&gt;&#8221;. But RESTful routes are <em>also</em> taken to mean actions. The
+arguments <code>BlogR True</code> clearly mean &#8220;Write to BlogR.&#8221; Thus,
+<code>permissionsRequiredFor</code> provides superfluous information. <code>Post</code> == <code>BlogR
+True</code> == &#8220;Post a Blog&#8221;.</li>
+<li>(Actually 1.5) To paraphrase hlint, &#8220;Why not foldM?&#8221; :)</li>
+</ol>
+
+
+<p>To resolve the first point, I propose this:</p>
+
+<div>
+  <pre>
+    <code class='haskell'>-- Permission replacement
+data Credential = LoggedIn | IsAdmin
+
+-- permissionsRequiredFor replacement
+--
+requiredCredentials :: Route Blog -&gt; Bool -&gt; [Credential]
+requiredCredentials BlogR      True = [IsAdmin]
+requiredCredentials (EntryR _) True = [LoggedIn]
+requiredCredentials _          _    = []</code>
+  </pre>
+</div>
+
+
+<p>Note that this new function does the same thing as the one it replaces, but
+reading it gives us more information: we know the action from the route, and
+we also know what credentials a user needs to perform that action.</p>
+
+<p>If that doesn&#8217;t immediately seem crucial, consider that many actions may be satisfied by the same credential. If I have a box with a key, it is assumed that I may do anything with the <em>contents</em> of that box provided I have the key. In other words,</p>
+
+<div>
+  <pre>
+    <code class='haskell'>data Credentials = HasKey
+
+requiredCredentials PutInBoxR ... = [HasKey BoxID]
+requiredCredentials TakeFromBoxR  = [HasKey BoxID]</code>
+  </pre>
+</div>
+
+
+<p>With Permissions, either you write separate permissions that do the same thing (GetBox, PutBox), or you break your semantic model and use a single Permission for both (&#8220;permission to Box?&#8221;)</p>
+
+<p>For the second point, note that <code>isAuthorizedTo</code> can be written like so (with a
+couple more name changes to sound sensible with <code>Credential</code>):</p>
+
+<div>
+  <pre>
+    <code class='haskell'>isAuthorizedTo :: Maybe (Entity User)
+               -&gt; [Credential]
+               -&gt; YesodDB sub Blog AuthResult
+Nothing `isAuthorizedTo` _  = return AuthenticationRequired
+Just u  `isAuthorizedTo` ps = foldM hasCred Authorized ps
+  where
+    hasCred Authorized p = u `hasCredential` p
+    hasCred badAuth    _ = return badAuth</code>
+  </pre>
+</div>
+
+
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[HW]]></title>
+    <link href="http://chreekat.github.com/blog/2012/02/01/hw/"/>
+    <updated>2012-02-01T00:00:00-08:00</updated>
+    <id>http://chreekat.github.com/blog/2012/02/01/hw</id>
+    <content type="html"><![CDATA[<p>Hello world!</p>
+
+<div>
+  <pre>
+    <code class='haskell'>import HelloWorld</code>
+  </pre>
+</div>
+
+
+<p>Does github pages
+use github-flavored markdown?</p>
+]]></content>
+  </entry>
+  
+</feed>

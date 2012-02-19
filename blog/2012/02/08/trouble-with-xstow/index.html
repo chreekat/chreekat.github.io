@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Still Testing</title>
+  <title>Trouble with xstow - Still Testing</title>
   <meta name="author" content="Bryan Richter">
 
   
@@ -19,7 +19,7 @@ both the version installed on Ubuntu 11.10 and a version compiled &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://chreekat.github.com">
+  <link rel="canonical" href="http://chreekat.github.com/blog/2012/02/08/trouble-with-xstow">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -75,15 +75,12 @@ both the version installed on Ubuntu 11.10 and a version compiled &hellip;">
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2012/02/08/trouble-with-xstow/">Trouble With Xstow</a></h1>
+      <h1 class="entry-title">Trouble With Xstow</h1>
     
     
       <p class="meta">
@@ -101,14 +98,14 @@ both the version installed on Ubuntu 11.10 and a version compiled &hellip;">
 
 <time datetime="2012-02-08T00:00:00-08:00" pubdate data-updated="true">8<span>th</span> Feb, 2012</time>
         
-         | <a href="/blog/2012/02/08/trouble-with-xstow/#disqus_thread">Comments</a>
+         | <a href="#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>I am trying to use xstow to manage deploying a set of scripts to ~/bin. However,
+<div class="entry-content"><p>I am trying to use xstow to manage deploying a set of scripts to ~/bin. However,
 both the version installed on Ubuntu 11.10 and a version compiled from scratch
 do not work as expected.</p>
 
@@ -168,132 +165,16 @@ b@avery:~/src$ ~/tmp/xstow-1.0.0/src/xstow -v -n scripts
 b@avery:~/src$ 
 </code></pre>
 </div>
-  
-  
 
 
-    </article>
-  
-  
-    <article>
+  <footer>
+    <p class="meta">
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/02/02/fun-with-yesod-authorization/">More Fun With Yesod Authorization</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
   
 
+<span class="byline author vcard">Posted by <span class="fn">Bryan Richter</span></span>
 
-<time datetime="2012-02-02T00:00:00-08:00" pubdate data-updated="true">2<span>nd</span> Feb, 2012</time>
-        
-         | <a href="/blog/2012/02/02/fun-with-yesod-authorization/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I was inspired by Felipe Lessa&#8217;s post about <a href="http://blog.felipe.lessa.nom.br/?p=7">abstracting Yesod
-permissions</a>. Thanks for writing it,
-Felipe! I had only just discovered <code>isAuthorized</code>, and that post made me all
-the more excited to go about refactoring my authorization code.</p>
-
-<p>Unfortunately I had a little trouble working Felipe&#8217;s method into my own
-project. This was probably due in no small part to my too-recent discovery of
-<code>isAuthorized</code> and the <code>AuthResult</code> type. After much tinkering, I narrowed the
-difficulties down to just one (and a half) points of contention:</p>
-
-<ol>
-<li>Permission values are taken to mean actions: &#8220;Permission to &lt;do
-action&gt;&#8221;. But RESTful routes are <em>also</em> taken to mean actions. The
-arguments <code>BlogR True</code> clearly mean &#8220;Write to BlogR.&#8221; Thus,
-<code>permissionsRequiredFor</code> provides superfluous information. <code>Post</code> == <code>BlogR
-True</code> == &#8220;Post a Blog&#8221;.</li>
-<li>(Actually 1.5) To paraphrase hlint, &#8220;Why not foldM?&#8221; :)</li>
-</ol>
-
-
-<p>To resolve the first point, I propose this:</p>
-
-<div>
-  <pre>
-    <code class='haskell'>-- Permission replacement
-data Credential = LoggedIn | IsAdmin
-
--- permissionsRequiredFor replacement
---
-requiredCredentials :: Route Blog -&gt; Bool -&gt; [Credential]
-requiredCredentials BlogR      True = [IsAdmin]
-requiredCredentials (EntryR _) True = [LoggedIn]
-requiredCredentials _          _    = []</code>
-  </pre>
-</div>
-
-
-<p>Note that this new function does the same thing as the one it replaces, but
-reading it gives us more information: we know the action from the route, and
-we also know what credentials a user needs to perform that action.</p>
-
-<p>If that doesn&#8217;t immediately seem crucial, consider that many actions may be satisfied by the same credential. If I have a box with a key, it is assumed that I may do anything with the <em>contents</em> of that box provided I have the key. In other words,</p>
-
-<div>
-  <pre>
-    <code class='haskell'>data Credentials = HasKey
-
-requiredCredentials PutInBoxR ... = [HasKey BoxID]
-requiredCredentials TakeFromBoxR  = [HasKey BoxID]</code>
-  </pre>
-</div>
-
-
-<p>With Permissions, either you write separate permissions that do the same thing (GetBox, PutBox), or you break your semantic model and use a single Permission for both (&#8220;permission to Box?&#8221;)</p>
-
-<p>For the second point, note that <code>isAuthorizedTo</code> can be written like so (with a
-couple more name changes to sound sensible with <code>Credential</code>):</p>
-
-<div>
-  <pre>
-    <code class='haskell'>isAuthorizedTo :: Maybe (Entity User)
-               -&gt; [Credential]
-               -&gt; YesodDB sub Blog AuthResult
-Nothing `isAuthorizedTo` _  = return AuthenticationRequired
-Just u  `isAuthorizedTo` ps = foldM hasCred Authorized ps
-  where
-    hasCred Authorized p = u `hasCredential` p
-    hasCred badAuth    _ = return badAuth</code>
-  </pre>
-</div>
-
-
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/02/01/hw/">HW</a></h1>
-    
-    
-      <p class="meta">
-        
 
 
 
@@ -305,39 +186,34 @@ Just u  `isAuthorizedTo` ps = foldM hasCred Authorized ps
   
 
 
-<time datetime="2012-02-01T00:00:00-08:00" pubdate data-updated="true">1<span>st</span> Feb, 2012</time>
-        
-         | <a href="/blog/2012/02/01/hw/#disqus_thread">Comments</a>
-        
-      </p>
+<time datetime="2012-02-08T00:00:00-08:00" pubdate data-updated="true">8<span>th</span> Feb, 2012</time>
+      
+
+
+    </p>
     
-  </header>
-
-
-  <div class="entry-content"><p>Hello world!</p>
-
-<div>
-  <pre>
-    <code class='haskell'>import HelloWorld</code>
-  </pre>
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://chreekat.github.com/blog/2012/02/08/trouble-with-xstow/" data-via="chreekat" data-counturl="http://chreekat.github.com/blog/2012/02/08/trouble-with-xstow/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
 </div>
 
-
-<p>Does github pages
-use github-flavored markdown?</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  <div class="pagination">
     
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/02/02/fun-with-yesod-authorization/" title="Previous Post: More Fun with Yesod Authorization">&laquo; More Fun with Yesod Authorization</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
 </div>
+
 <aside class="sidebar">
   
     <section>
@@ -362,7 +238,7 @@ use github-flavored markdown?</p>
 <section>
   <h1>Github Repos</h1>
   <ul id="gh_repos">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   
   <a href="https://github.com/chreekat">@chreekat</a> on Github
@@ -392,7 +268,7 @@ use github-flavored markdown?</p>
 <section>
   <h1>Latest Tweets</h1>
   <ul id="tweets">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   <script type="text/javascript">
     $.domReady(function(){
@@ -420,6 +296,7 @@ use github-flavored markdown?</p>
 
   
 </aside>
+
 
     </div>
   </div>
