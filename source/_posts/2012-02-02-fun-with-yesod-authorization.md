@@ -3,10 +3,10 @@ layout: post
 title: More Fun with Yesod Authorization
 ---
 
-I was inspired by Felipe Lessa's post about [abstracting Yesod
-permissions](http://blog.felipe.lessa.nom.br/?p=7). Thanks for writing it,
-Felipe! I had only just discovered `isAuthorized`, and that post made me all
-the more excited to go about refactoring my authorization code.
+I was inspired by Felipe Lessa's post about
+[abstracting Yesod permissions](http://blog.felipe.lessa.nom.br/?p=7). Thanks
+for writing it, Felipe! I had only just discovered `isAuthorized`, and that post
+made me all the more excited to go about refactoring my authorization code.
 
 Unfortunately I had a little trouble working Felipe's method into my own
 project. This was probably due in no small part to my too-recent discovery of
