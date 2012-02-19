@@ -295,7 +295,8 @@ task :set_root_dir, :dir do |t, args|
 end
 
 desc "Set up _deploy folder and deploy branch for Github Pages deployment"
-task :setup_github_pages, :repo do |t, args|
+task :setup_github_pages, [:repo, :clone] do |t, args|
+  ## Get repo, set user/branch/project
   if args.repo
     repo_url = args.repo
   else
@@ -304,6 +305,9 @@ task :setup_github_pages, :repo do |t, args|
   user = repo_url.match(/:([^\/]+)/)[1]
   branch = (repo_url.match(/\/[\w-]+.github.com/).nil?) ? 'gh-pages' : 'master'
   project = (branch == 'gh-pages') ? repo_url.match(/\/([^\.]+)/)[1] : ''
+  ## Move octopress remote from 'origin' to 'octopress' and add github remote as
+  ## new 'origin'. Rename master branch to source, which is kind of a big
+  ## assumption? Also, not sure this is the best place to put set_root_dir.
   unless `git remote -v`.match(/origin.+?octopress.git/).nil?
     # If octopress is still the origin remote (from cloning) rename it to octopress
     system "git remote rename origin octopress"
@@ -322,6 +326,8 @@ task :setup_github_pages, :repo do |t, args|
       end
     end
   end
+  ## Reconfigure _config.yml's 'url'. Could just remove it, especially if it
+  ## fubars CNAME stuff.
   url = "http://#{user}.github.com"
   url += "/#{project}" unless project == ''
   jekyll_config = IO.read('_config.yml')
@@ -330,20 +336,30 @@ task :setup_github_pages, :repo do |t, args|
     f.write jekyll_config
   end
   rm_rf deploy_dir
-  mkdir deploy_dir
-  cd "#{deploy_dir}" do
-    system "git init"
-    system "echo 'My Octopress Page is coming soon &hellip;' > index.html"
-    system "git add ."
-    system "git commit -m \"Octopress init\""
-    system "git branch -m gh-pages" unless branch == 'master'
-    system "git remote add origin #{repo_url}"
-    rakefile = IO.read(__FILE__)
-    rakefile.sub!(/deploy_branch(\s*)=(\s*)(["'])[\w-]*["']/, "deploy_branch\\1=\\2\\3#{branch}\\3")
-    rakefile.sub!(/deploy_default(\s*)=(\s*)(["'])[\w-]*["']/, "deploy_default\\1=\\2\\3push\\3")
-    File.open(__FILE__, 'w') do |f|
-      f.write rakefile
+  if args.clone
+    system "git clone -b #{branch} #{repo_url} #{deploy_dir}"
+    puts "\n*** Take care! ***"
+    puts "    Please now take the time to copy pages and blogs from your"
+    puts "    existing github repo out of #{deploy_dir} and"
+    puts "    into #{source_dir}. Otherwise, generating your"
+    puts "    site will overwrite them."
+  else
+    mkdir deploy_dir
+    cd "#{deploy_dir}" do
+      system "git init"
+      system "echo 'My Octopress Page is coming soon &hellip;' > index.html"
+      system "git add ."
+      system "git commit -m \"Octopress init\""
+      system "git branch -m gh-pages" unless branch == 'master'
+      system "git remote add origin #{repo_url}"
     end
+  end
+  rakefile = IO.read(__FILE__)
+  ## Change default deploy task to 'push'
+  rakefile.sub!(/deploy_branch(\s*)=(\s*)(["'])[\w-]*["']/, "deploy_branch\\1=\\2\\3#{branch}\\3")
+  rakefile.sub!(/deploy_default(\s*)=(\s*)(["'])[\w-]*["']/, "deploy_default\\1=\\2\\3push\\3")
+  File.open(__FILE__, 'w') do |f|
+    f.write rakefile
   end
   puts "\n---\n## Now you can deploy to #{url} with `rake deploy` ##"
 end
