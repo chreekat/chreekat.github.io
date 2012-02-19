@@ -4,7 +4,7 @@
   <title><![CDATA[Still Testing]]></title>
   <link href="http://chreekat.github.com/atom.xml" rel="self"/>
   <link href="http://chreekat.github.com/"/>
-  <updated>2012-02-18T17:25:41-08:00</updated>
+  <updated>2012-02-18T17:36:46-08:00</updated>
   <id>http://chreekat.github.com/</id>
   <author>
     <name><![CDATA[Bryan Richter]]></name>
@@ -34,13 +34,20 @@ do not work as expected.</p>
 <p>I would like to <em>only</em> install the files under bin/. I assumed the following
 xstow.ini would work:</p>
 
-<pre><code>[matches]
-nignore = bins
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ini'><span class='line'><span class="k">[matches]</span>
+</span><span class='line'><span class="na">nignore</span> <span class="o">=</span> <span class="s">bins</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">[bins]</span>
+</span><span class='line'><span class="na">dir</span> <span class="o">=</span> <span class="s">/home/b/bin</span>
+</span><span class='line'><span class="na">follow</span> <span class="o">=</span> <span class="s">false</span>
+</span></code></pre></td></tr></table></div></figure>
 
-[bins]
-dir = /home/b/bin
-follow = false
-</code></pre>
 
 <h3>Actual Results</h3>
 
@@ -107,19 +114,25 @@ True</code> == &#8220;Post a Blog&#8221;.</li>
 
 <p>To resolve the first point, I propose this:</p>
 
-<div>
-  <pre>
-    <code class='haskell'>-- Permission replacement
-data Credential = LoggedIn | IsAdmin
-
--- permissionsRequiredFor replacement
---
-requiredCredentials :: Route Blog -&gt; Bool -&gt; [Credential]
-requiredCredentials BlogR      True = [IsAdmin]
-requiredCredentials (EntryR _) True = [LoggedIn]
-requiredCredentials _          _    = []</code>
-  </pre>
-</div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='haskell'><span class='line'><span class="c1">-- Permission replacement</span>
+</span><span class='line'><span class="kr">data</span> <span class="kt">Credential</span> <span class="ow">=</span> <span class="kt">LoggedIn</span> <span class="o">|</span> <span class="kt">IsAdmin</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">-- permissionsRequiredFor replacement</span>
+</span><span class='line'><span class="c1">--</span>
+</span><span class='line'><span class="nf">requiredCredentials</span> <span class="ow">::</span> <span class="kt">Route</span> <span class="kt">Blog</span> <span class="ow">-&gt;</span> <span class="kt">Bool</span> <span class="ow">-&gt;</span> <span class="p">[</span><span class="kt">Credential</span><span class="p">]</span>
+</span><span class='line'><span class="nf">requiredCredentials</span> <span class="kt">BlogR</span>      <span class="kt">True</span> <span class="ow">=</span> <span class="p">[</span><span class="kt">IsAdmin</span><span class="p">]</span>
+</span><span class='line'><span class="nf">requiredCredentials</span> <span class="p">(</span><span class="kt">EntryR</span> <span class="kr">_</span><span class="p">)</span> <span class="kt">True</span> <span class="ow">=</span> <span class="p">[</span><span class="kt">LoggedIn</span><span class="p">]</span>
+</span><span class='line'><span class="nf">requiredCredentials</span> <span class="kr">_</span>          <span class="kr">_</span>    <span class="ow">=</span> <span class="kt">[]</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Note that this new function does the same thing as the one it replaces, but
@@ -128,14 +141,15 @@ we also know what credentials a user needs to perform that action.</p>
 
 <p>If that doesn&#8217;t immediately seem crucial, consider that many actions may be satisfied by the same credential. If I have a box with a key, it is assumed that I may do anything with the <em>contents</em> of that box provided I have the key. In other words,</p>
 
-<div>
-  <pre>
-    <code class='haskell'>data Credentials = HasKey
-
-requiredCredentials PutInBoxR ... = [HasKey BoxID]
-requiredCredentials TakeFromBoxR  = [HasKey BoxID]</code>
-  </pre>
-</div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='haskell'><span class='line'><span class="kr">data</span> <span class="kt">Credentials</span> <span class="ow">=</span> <span class="kt">HasKey</span>
+</span><span class='line'>
+</span><span class='line'><span class="nf">requiredCredentials</span> <span class="kt">PutInBoxR</span> <span class="o">...</span> <span class="ow">=</span> <span class="p">[</span><span class="kt">HasKey</span> <span class="kt">BoxID</span><span class="p">]</span>
+</span><span class='line'><span class="nf">requiredCredentials</span> <span class="kt">TakeFromBoxR</span>  <span class="ow">=</span> <span class="p">[</span><span class="kt">HasKey</span> <span class="kt">BoxID</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>With Permissions, either you write separate permissions that do the same thing (GetBox, PutBox), or you break your semantic model and use a single Permission for both (&#8220;permission to Box?&#8221;)</p>
@@ -143,20 +157,23 @@ requiredCredentials TakeFromBoxR  = [HasKey BoxID]</code>
 <p>For the second point, note that <code>isAuthorizedTo</code> can be written like so (with a
 couple more name changes to sound sensible with <code>Credential</code>):</p>
 
-<div>
-  <pre>
-    <code class='haskell'>isAuthorizedTo :: Maybe (Entity User)
-               -&gt; [Credential]
-               -&gt; YesodDB sub Blog AuthResult
-Nothing `isAuthorizedTo` _  = return AuthenticationRequired
-Just u  `isAuthorizedTo` ps = foldM hasCred Authorized ps
-  where
-    hasCred Authorized p = u `hasCredential` p
-    hasCred badAuth    _ = return badAuth</code>
-  </pre>
-</div>
-
-
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='haskell'><span class='line'><span class="nf">isAuthorizedTo</span> <span class="ow">::</span> <span class="kt">Maybe</span> <span class="p">(</span><span class="kt">Entity</span> <span class="kt">User</span><span class="p">)</span>
+</span><span class='line'>               <span class="ow">-&gt;</span> <span class="p">[</span><span class="kt">Credential</span><span class="p">]</span>
+</span><span class='line'>               <span class="ow">-&gt;</span> <span class="kt">YesodDB</span> <span class="n">sub</span> <span class="kt">Blog</span> <span class="kt">AuthResult</span>
+</span><span class='line'><span class="kt">Nothing</span> <span class="p">`</span><span class="n">isAuthorizedTo</span><span class="p">`</span> <span class="kr">_</span>  <span class="ow">=</span> <span class="n">return</span> <span class="kt">AuthenticationRequired</span>
+</span><span class='line'><span class="kt">Just</span> <span class="n">u</span>  <span class="p">`</span><span class="n">isAuthorizedTo</span><span class="p">`</span> <span class="n">ps</span> <span class="ow">=</span> <span class="n">foldM</span> <span class="n">hasCred</span> <span class="kt">Authorized</span> <span class="n">ps</span>
+</span><span class='line'>  <span class="kr">where</span>
+</span><span class='line'>    <span class="n">hasCred</span> <span class="kt">Authorized</span> <span class="n">p</span> <span class="ow">=</span> <span class="n">u</span> <span class="p">`</span><span class="n">hasCredential</span><span class="p">`</span> <span class="n">p</span>
+</span><span class='line'>    <span class="n">hasCred</span> <span class="n">badAuth</span>    <span class="kr">_</span> <span class="ow">=</span> <span class="n">return</span> <span class="n">badAuth</span>
+</span></code></pre></td></tr></table></div></figure>
 
 ]]></content>
   </entry>
@@ -168,11 +185,9 @@ Just u  `isAuthorizedTo` ps = foldM hasCred Authorized ps
     <id>http://chreekat.github.com/blog/2012/02/01/hw</id>
     <content type="html"><![CDATA[<p>Hello world!</p>
 
-<div>
-  <pre>
-    <code class='haskell'>import HelloWorld</code>
-  </pre>
-</div>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='haskell'><span class='line'><span class="kr">import</span> <span class="nn">HelloWorld</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 <p>Does github pages
