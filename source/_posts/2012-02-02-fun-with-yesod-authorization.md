@@ -1,6 +1,7 @@
 ---
 layout: post
 title: More Fun with Yesod Authorization
+comments: true
 ---
 
 I was inspired by Felipe Lessa's post about

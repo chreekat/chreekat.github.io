@@ -2,6 +2,7 @@
 published: false
 layout: post
 title: Interview Questions
+comments: true
 ---
 
 I recently had my first "real interview" in years, and bombed it appropriately.

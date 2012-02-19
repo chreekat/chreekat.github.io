@@ -1,6 +1,7 @@
 ---
 layout: post
 title: HW
+comments: true
 ---
 
 Hello world!
