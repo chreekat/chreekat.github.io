@@ -4,7 +4,7 @@
   <title><![CDATA[Still Testing]]></title>
   <link href="http://chreekat.github.com/atom.xml" rel="self"/>
   <link href="http://chreekat.github.com/"/>
-  <updated>2012-02-18T17:36:46-08:00</updated>
+  <updated>2012-02-18T17:45:58-08:00</updated>
   <id>http://chreekat.github.com/</id>
   <author>
     <name><![CDATA[Bryan Richter]]></name>
@@ -12,6 +12,17 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Now with Octopress]]></title>
+    <link href="http://chreekat.github.com/blog/2012/02/18/now-with-octopress/"/>
+    <updated>2012-02-18T17:41:00-08:00</updated>
+    <id>http://chreekat.github.com/blog/2012/02/18/now-with-octopress</id>
+    <content type="html"><![CDATA[<p>Hello world, take 2.</p>
+
+<p>Previously quasi-published posts are below!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Trouble with xstow]]></title>
@@ -92,10 +103,10 @@ b@avery:~/src$
     <link href="http://chreekat.github.com/blog/2012/02/02/fun-with-yesod-authorization/"/>
     <updated>2012-02-02T00:00:00-08:00</updated>
     <id>http://chreekat.github.com/blog/2012/02/02/fun-with-yesod-authorization</id>
-    <content type="html"><![CDATA[<p>I was inspired by Felipe Lessa&#8217;s post about <a href="http://blog.felipe.lessa.nom.br/?p=7">abstracting Yesod
-permissions</a>. Thanks for writing it,
-Felipe! I had only just discovered <code>isAuthorized</code>, and that post made me all
-the more excited to go about refactoring my authorization code.</p>
+    <content type="html"><![CDATA[<p>I was inspired by Felipe Lessa&#8217;s post about
+<a href="http://blog.felipe.lessa.nom.br/?p=7">abstracting Yesod permissions</a>. Thanks
+for writing it, Felipe! I had only just discovered <code>isAuthorized</code>, and that post
+made me all the more excited to go about refactoring my authorization code.</p>
 
 <p>Unfortunately I had a little trouble working Felipe&#8217;s method into my own
 project. This was probably due in no small part to my too-recent discovery of
