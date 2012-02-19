@@ -341,7 +341,7 @@ task :setup_github_pages, [:repo, :clone] do |t, args|
     puts "\n*** Take care! ***"
     puts "    Please now take the time to copy pages and blogs from your"
     puts "    existing github repo out of #{deploy_dir} and"
-    puts "    into #{source_dir}. Otherwise, generating your"
+    puts "    into #{source_dir}. Otherwise, deploying your"
     puts "    site will overwrite them."
   else
     mkdir deploy_dir
