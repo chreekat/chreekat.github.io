@@ -105,9 +105,9 @@ you, dear reader, with the list of questions I was asked:
     3. Construct a function `shrink` that takes as input `m1` and `s2` and
        returns a new map, `m2`, 
 
-    {% highlight haskell %}
+    ``` haskell
     import qualified Data.Text as T
 
     isAnagram :: T.Text -> T.Text -> Bool
     isAnagram
-    {% endhighlight %}
+    ```

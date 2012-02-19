@@ -5,9 +5,9 @@ title: HW
 
 Hello world!
 
-{% highlight haskell %}
+``` haskell
 import HelloWorld
-{% endhighlight %}
+```
 
 Does github pages
 use github-flavored markdown?

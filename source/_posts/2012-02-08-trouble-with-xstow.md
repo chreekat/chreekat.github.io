@@ -20,12 +20,14 @@ My scripts live in a git repo with the following layout:
 I would like to *only* install the files under bin/. I assumed the following
 xstow.ini would work:
 
+``` ini
     [matches]
     nignore = bins
 
     [bins]
     dir = /home/b/bin
     follow = false
+```
 
 ### Actual Results
 
