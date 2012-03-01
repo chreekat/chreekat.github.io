@@ -9,8 +9,8 @@
   <meta name="author" content="Bryan Richter">
 
   
-  <meta name="description" content="Hello world, take 2. Previously quasi-published posts are below!
-">
+  <meta name="description" content="Problems I still have a bad habit of busting out code that wants to branch a lot, because
+my inner dialogue is still imperative. &#8220;If this is &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -77,6 +77,401 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/03/01/ditching-the-imperative/">Ditching the Imperative</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-03-01T11:40:00-08:00" pubdate data-updated="true">1<span>st</span> Mar, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Problems</h2>
+
+<p>I still have a bad habit of busting out code that wants to branch a lot, because
+my inner dialogue is still imperative. &#8220;If this is true, then if that is true, then
+for all of those, do these things.&#8221;</p>
+
+<p>My intuition is slowly changing. I know to substitute &#8220;for all of those, do these
+things&#8221; into &#8220;map these over those&#8221;, but I still struggle with the &#8220;if, if,
+else, if, else&#8221;. This is especially true with switching statements.</p>
+
+<p>For instance, right now I have</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='haskell'><span class='line'>  <span class="kr">let</span> <span class="n">a</span> <span class="ow">=</span> <span class="s">&quot;cromulent&quot;</span> <span class="kr">in</span> <span class="kr">do</span>
+</span><span class='line'>    <span class="n">x</span> <span class="ow">&lt;-</span> <span class="n">getX</span>
+</span><span class='line'>    <span class="n">y</span> <span class="ow">&lt;-</span> <span class="n">getY</span>
+</span><span class='line'>    <span class="n">z</span> <span class="ow">&lt;-</span> <span class="n">getZ</span>
+</span><span class='line'>    <span class="kr">case</span> <span class="n">requestType</span> <span class="kr">of</span>
+</span><span class='line'>        <span class="s">&quot;x&quot;</span> <span class="ow">-&gt;</span>
+</span><span class='line'>            <span class="n">res</span> <span class="ow">&lt;-</span> <span class="n">runX</span>
+</span><span class='line'>            <span class="kr">case</span> <span class="n">errorCondition</span> <span class="n">res</span> <span class="kr">of</span>
+</span><span class='line'>                <span class="kt">Nothing</span> <span class="ow">-&gt;</span>
+</span><span class='line'>                    <span class="kr">case</span> <span class="n">otherCondition</span> <span class="kr">of</span>
+</span><span class='line'>                        <span class="kt">Foo</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                            <span class="n">doThingsWithX_and_Y</span>
+</span><span class='line'>                            <span class="o">...</span>
+</span><span class='line'>                        <span class="kt">Bar</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                            <span class="n">doThingsWithA_and_Z</span>
+</span><span class='line'>                            <span class="o">...</span>
+</span><span class='line'>                <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="o">...</span>
+</span><span class='line'>        <span class="s">&quot;y&quot;</span> <span class="ow">-&gt;</span>
+</span><span class='line'>            <span class="n">res</span> <span class="ow">&lt;-</span> <span class="n">runY</span>
+</span><span class='line'>            <span class="kr">case</span> <span class="n">errorCondition</span> <span class="n">res</span> <span class="kr">of</span>
+</span><span class='line'>                <span class="kt">Nothing</span> <span class="ow">-&gt;</span>
+</span><span class='line'>                    <span class="kr">case</span> <span class="n">yetAnotherCondition</span> <span class="kr">of</span>
+</span><span class='line'>                        <span class="kt">Baz</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                            <span class="n">doThingsWithZ_and_Y</span>
+</span><span class='line'>                            <span class="o">...</span>
+</span><span class='line'>                        <span class="kt">Quux</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                            <span class="n">doThingsWithX_and_A</span>
+</span><span class='line'>                            <span class="o">...</span>
+</span><span class='line'>                <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="o">...</span>
+</span><span class='line'>        <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="n">blarg</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I find that to be incredibly ugly code. Why? Two reasons. One: I may no longer
+be a C programmer (if I ever was one) but I still agree with Linus that &#8220;If you
+need more than three levels of indent, you&#8217;re screwed anyway, and should fix
+your program.&#8221; This code has seven!</p>
+
+<p>I could fix this first problem by hacking off some of the indent levels and
+putting them in a new function, i.e.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='haskell'><span class='line'>  <span class="kr">let</span> <span class="n">a</span> <span class="ow">=</span> <span class="s">&quot;cromulent&quot;</span> <span class="kr">in</span> <span class="kr">do</span>
+</span><span class='line'>    <span class="n">x</span> <span class="ow">&lt;-</span> <span class="n">getX</span>
+</span><span class='line'>    <span class="n">y</span> <span class="ow">&lt;-</span> <span class="n">getY</span>
+</span><span class='line'>    <span class="n">z</span> <span class="ow">&lt;-</span> <span class="n">getZ</span>
+</span><span class='line'>    <span class="kr">case</span> <span class="n">requestType</span> <span class="kr">of</span>
+</span><span class='line'>        <span class="s">&quot;x&quot;</span> <span class="ow">-&gt;</span> <span class="n">processX</span> <span class="n">x</span> <span class="n">y</span> <span class="n">z</span>
+</span><span class='line'>        <span class="s">&quot;y&quot;</span> <span class="ow">-&gt;</span> <span class="n">processY</span> <span class="n">x</span> <span class="n">y</span> <span class="n">z</span>
+</span><span class='line'>        <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="n">blarg</span>
+</span><span class='line'>
+</span><span class='line'><span class="nf">processX</span> <span class="n">x</span> <span class="n">y</span> <span class="n">z</span> <span class="n">a</span> <span class="ow">=</span> <span class="o">...</span>
+</span><span class='line'>    <span class="n">res</span> <span class="ow">&lt;-</span> <span class="n">runX</span>
+</span><span class='line'>    <span class="kr">case</span> <span class="n">errorCondition</span> <span class="n">res</span> <span class="kr">of</span>
+</span><span class='line'>        <span class="kt">Nothing</span> <span class="ow">-&gt;</span>
+</span><span class='line'>            <span class="kr">case</span> <span class="n">otherCondition</span> <span class="kr">of</span>
+</span><span class='line'>                <span class="kt">Foo</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                    <span class="n">doThingsWithX_and_Y</span>
+</span><span class='line'>                    <span class="o">...</span>
+</span><span class='line'>                <span class="kt">Bar</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                    <span class="n">doThingsWithA_and_Z</span>
+</span><span class='line'>                    <span class="o">...</span>
+</span><span class='line'>        <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'><span class="nf">processY</span> <span class="n">x</span> <span class="n">y</span> <span class="n">z</span> <span class="n">a</span> <span class="ow">=</span> <span class="o">...</span>
+</span><span class='line'>    <span class="n">res</span> <span class="ow">&lt;-</span> <span class="n">runY</span>
+</span><span class='line'>    <span class="kr">case</span> <span class="n">errorCondition</span> <span class="n">res</span> <span class="kr">of</span>
+</span><span class='line'>        <span class="kt">Nothing</span> <span class="ow">-&gt;</span>
+</span><span class='line'>            <span class="kr">case</span> <span class="n">yetAnotherCondition</span> <span class="kr">of</span>
+</span><span class='line'>                <span class="kt">Baz</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                    <span class="n">doThingsWithZ_and_Y</span>
+</span><span class='line'>                    <span class="o">...</span>
+</span><span class='line'>                <span class="kt">Quux</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                    <span class="n">doThingsWithX_and_A</span>
+</span><span class='line'>                    <span class="o">...</span>
+</span><span class='line'>        <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>However, that brings me to the second reason I think this is ugly code. Even
+when chopped into bitty functions, it&#8217;s still too imperative. If I simply chop
+out segments of the logic and put them in small functions, I haven&#8217;t gotten rid
+of the underlying problem, which is too-deep, &#8220;turn left then turn right&#8221; code.
+Plus I&#8217;ve created a bunch of functions that are useless in general, and are so
+strongly connected to their callers that in practice I end up needing to pass a
+ton of variables.</p>
+
+<h2>Solutions</h2>
+
+<p>So let&#8217;s fix up this code, and hopefully improve my intuition in the process.</p>
+
+<p>One helpful idea occurred to me right away: use closures and define the shrimpy
+functions under a &#8216;where&#8217;. So the previous becomes:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+</pre></td><td class='code'><pre><code class='haskell'><span class='line'>  <span class="kr">let</span> <span class="n">a</span> <span class="ow">=</span> <span class="s">&quot;cromulent&quot;</span> <span class="kr">in</span> <span class="kr">do</span>
+</span><span class='line'>    <span class="n">x</span> <span class="ow">&lt;-</span> <span class="n">getX</span>
+</span><span class='line'>    <span class="n">y</span> <span class="ow">&lt;-</span> <span class="n">getY</span>
+</span><span class='line'>    <span class="n">z</span> <span class="ow">&lt;-</span> <span class="n">getZ</span>
+</span><span class='line'>    <span class="kr">case</span> <span class="n">requestType</span> <span class="kr">of</span>
+</span><span class='line'>        <span class="s">&quot;x&quot;</span> <span class="ow">-&gt;</span> <span class="n">processX</span>
+</span><span class='line'>        <span class="s">&quot;y&quot;</span> <span class="ow">-&gt;</span> <span class="n">processY</span>
+</span><span class='line'>        <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="n">blarg</span>
+</span><span class='line'>  <span class="kr">where</span>
+</span><span class='line'>    <span class="n">processX</span> <span class="ow">=</span> <span class="o">...</span>
+</span><span class='line'>        <span class="n">res</span> <span class="ow">&lt;-</span> <span class="n">runX</span>
+</span><span class='line'>        <span class="kr">case</span> <span class="n">errorCondition</span> <span class="n">res</span> <span class="kr">of</span>
+</span><span class='line'>            <span class="kt">Nothing</span> <span class="ow">-&gt;</span>
+</span><span class='line'>                <span class="kr">case</span> <span class="n">otherCondition</span> <span class="kr">of</span>
+</span><span class='line'>                    <span class="kt">Foo</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                        <span class="n">doThingsWithX_and_Y</span>
+</span><span class='line'>                        <span class="o">...</span>
+</span><span class='line'>                    <span class="kt">Bar</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                        <span class="n">doThingsWithA_and_Z</span>
+</span><span class='line'>                        <span class="o">...</span>
+</span><span class='line'>            <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="o">...</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">processY</span> <span class="ow">=</span> <span class="o">...</span>
+</span><span class='line'>        <span class="n">res</span> <span class="ow">&lt;-</span> <span class="n">runY</span>
+</span><span class='line'>        <span class="kr">case</span> <span class="n">errorCondition</span> <span class="n">res</span> <span class="kr">of</span>
+</span><span class='line'>            <span class="kt">Nothing</span> <span class="ow">-&gt;</span>
+</span><span class='line'>                <span class="kr">case</span> <span class="n">yetAnotherCondition</span> <span class="kr">of</span>
+</span><span class='line'>                    <span class="kt">Baz</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                        <span class="n">doThingsWithZ_and_Y</span>
+</span><span class='line'>                        <span class="o">...</span>
+</span><span class='line'>                    <span class="kt">Quux</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                        <span class="n">doThingsWithX_and_A</span>
+</span><span class='line'>                        <span class="o">...</span>
+</span><span class='line'>            <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="o">...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That strikes me as a reasonable change that alleviates the indentation problem.
+Those specific, tightly coupled functions one must create now get access to
+variables in the outer scope, and aren&#8217;t visible outside of that scope.</p>
+
+<p>But, I still feel this is too imperative. (There&#8217;s another problem, too. This
+won&#8217;t compile for reasons I&#8217;ll get to below. But let&#8217;s stick to the ugly factor
+for now.) Can I do better than &#8220;If this then do that else do this?&#8221;</p>
+
+<p>Next insight: To make this more declarative and functional, I can take the case
+switiching out of my <em>manual</em> control and put it into the capable hands of the
+compiler. That means pattern matching on function arguments. So now:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='haskell'><span class='line'>  <span class="kr">let</span> <span class="n">a</span> <span class="ow">=</span> <span class="s">&quot;cromulent&quot;</span> <span class="kr">in</span> <span class="kr">do</span>
+</span><span class='line'>    <span class="n">x</span> <span class="ow">&lt;-</span> <span class="n">getX</span>
+</span><span class='line'>    <span class="n">y</span> <span class="ow">&lt;-</span> <span class="n">getY</span>
+</span><span class='line'>    <span class="n">z</span> <span class="ow">&lt;-</span> <span class="n">getZ</span>
+</span><span class='line'>    <span class="n">processRequest</span> <span class="n">requestType</span>
+</span><span class='line'>  <span class="kr">where</span>
+</span><span class='line'>    <span class="n">processRequest</span> <span class="s">&quot;x&quot;</span> <span class="ow">=</span> <span class="o">...</span>
+</span><span class='line'>        <span class="n">res</span> <span class="ow">&lt;-</span> <span class="n">runX</span>
+</span><span class='line'>        <span class="kr">case</span> <span class="n">errorCondition</span> <span class="n">res</span> <span class="kr">of</span>
+</span><span class='line'>            <span class="kt">Nothing</span> <span class="ow">-&gt;</span>
+</span><span class='line'>                <span class="kr">case</span> <span class="n">otherCondition</span> <span class="kr">of</span>
+</span><span class='line'>                    <span class="kt">Foo</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                        <span class="n">doThingsWithX_and_Y</span>
+</span><span class='line'>                        <span class="o">...</span>
+</span><span class='line'>                    <span class="kt">Bar</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                        <span class="n">doThingsWithA_and_Z</span>
+</span><span class='line'>                        <span class="o">...</span>
+</span><span class='line'>            <span class="kr">_</span> <span class="ow">-&gt;</span> <span class="o">...</span>
+</span><span class='line'>    <span class="n">processRequest</span> <span class="s">&quot;y&quot;</span> <span class="ow">=</span> <span class="o">...</span>
+</span><span class='line'>        <span class="n">res</span> <span class="ow">&lt;-</span> <span class="n">runY</span>
+</span><span class='line'>        <span class="kr">case</span> <span class="n">errorCondition</span> <span class="n">res</span> <span class="kr">of</span>
+</span><span class='line'>            <span class="kt">Nothing</span> <span class="ow">-&gt;</span>
+</span><span class='line'>                <span class="kr">case</span> <span class="n">yetAnotherCondition</span> <span class="kr">of</span>
+</span><span class='line'>                    <span class="kt">Baz</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                        <span class="n">doThingsWithZ_and_Y</span>
+</span><span class='line'>                        <span class="o">...</span>
+</span><span class='line'>                    <span class="kt">Quux</span> <span class="ow">-&gt;</span> <span class="kr">do</span>
+</span><span class='line'>                        <span class="n">doThingsWithX_and_A</span>
+</span><span class='line'>                        <span class="o">...</span>
+</span><span class='line'>    <span class="n">processRequest</span> <span class="kr">_</span> <span class="ow">=</span> <span class="n">blarg</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is shorter and more declarative. I could iterate the process to remove the
+inner case statements, too.</p>
+
+<p>The take away from this is: <strong>when I feel like writing a case statement, I should
+instead write a function with argument pattern-matching.</strong></p>
+
+<p>Except there&#8217;s a compilation problem, as mentioned above. When I was going on
+about closures, and variables being available in inner functions, I confused
+&#8216;let&#8217; and &#8216;where&#8217; variables with &#8216;do&#8217; variables. In the examples above, <code>x</code>, <code>y</code>,
+and <code>z</code> are out of scope in <code>processRequest</code>! To see why, consider this smaller
+example:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='haskell'><span class='line'><span class="nf">broken</span> <span class="ow">=</span> <span class="kr">do</span>
+</span><span class='line'>    <span class="n">x</span> <span class="ow">&lt;-</span> <span class="n">someAught</span>
+</span><span class='line'>    <span class="n">runIt</span>
+</span><span class='line'>  <span class="kr">where</span>
+</span><span class='line'>    <span class="n">runIt</span> <span class="ow">=</span> <span class="n">someProcess</span> <span class="n">x</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This doesn&#8217;t work because <code>x</code> is not local to the &#8220;scope&#8221; as defined by indenting
+&#8211; it&#8217;s local to the monad that is running. <code>runIt</code> is defined external to the
+action going on inside to the &#8216;do&#8217;, so it doesn&#8217;t get to see <code>x</code>. If we
+de-sugar, we see</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='haskell'><span class='line'><span class="nf">broken</span> <span class="ow">=</span> <span class="n">someAught</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="nf">\</span><span class="n">x</span> <span class="ow">-&gt;</span> <span class="n">runIt</span><span class="p">)</span>
+</span><span class='line'>  <span class="kr">where</span>
+</span><span class='line'>    <span class="n">runIt</span> <span class="ow">=</span> <span class="n">someProcess</span> <span class="n">x</span> <span class="c1">-- Not in scope: `x&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is annoying when, for example, all of my deeper code (like the bodies of
+<code>processRequest</code> above) want the result of the same computations. If every
+branch of code uses <code>runX</code> and <code>runY</code>, must I write the code to run those
+actions in each body separately? Where&#8217;s the code sharing?</p>
+
+<p>I haven&#8217;t figured a good solution to this yet.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -387,13 +782,21 @@ use github-flavored markdown?</p>
 </div>
 <aside class="sidebar">
   
-    Included file &#8216;custom/asides/gravatar.html&#8217; not found in _includes directory<section>
+    
+<section>
+  <img src="http://gravatar.com/avatar/6a3e2fbf6abc8e31d4ac4223631c425c" alt="Gravatar image" title="Gravatar Image" />
+</section>
+<section>
   <p>I&#8217;m Bryan!</p>
   <p>aka chreekat, for no good reason.</p>
 </section>
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2012/03/01/ditching-the-imperative/">Ditching the Imperative</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2012/02/18/now-with-octopress/">Now with Octopress</a>

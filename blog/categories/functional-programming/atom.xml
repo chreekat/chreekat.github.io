@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: functional-programming | Still Testing]]></title>
+  <link href="http://chreekat.github.com/blog/categories/functional-programming/atom.xml" rel="self"/>
+  <link href="http://chreekat.github.com/"/>
+  <updated>2012-03-01T15:53:46-08:00</updated>
+  <id>http://chreekat.github.com/</id>
+  <author>
+    <name><![CDATA[Bryan Richter]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Ditching the Imperative]]></title>
+    <link href="http://chreekat.github.com/blog/2012/03/01/ditching-the-imperative/"/>
+    <updated>2012-03-01T11:40:00-08:00</updated>
+    <id>http://chreekat.github.com/blog/2012/03/01/ditching-the-imperative</id>
+    <content type="html"><![CDATA[<h2>Problems</h2>
+
+<p>I still have a bad habit of busting out code that wants to branch a lot, because
+my inner dialogue is still imperative. "If this is true, then if that is true, then
+for all of those, do these things."</p>
+
+<p>My intuition is slowly changing. I know to substitute "for all of those, do these
+things" into "map these over those", but I still struggle with the "if, if,
+else, if, else". This is especially true with switching statements.</p>
+
+<p>For instance, right now I have</p>
+
+<p>```haskell</p>
+
+<p>  let a = "cromulent" in do</p>
+
+<pre><code>x &lt;- getX
+y &lt;- getY
+z &lt;- getZ
+case requestType of
+    "x" -&gt;
+        res &lt;- runX
+        case errorCondition res of
+            Nothing -&gt;
+                case otherCondition of
+                    Foo -&gt; do
+                        doThingsWithX_and_Y
+                        ...
+                    Bar -&gt; do
+                        doThingsWithA_and_Z
+                        ...
+            _ -&gt; ...
+    "y" -&gt;
+        res &lt;- runY
+        case errorCondition res of
+            Nothing -&gt;
+                case yetAnotherCondition of
+                    Baz -&gt; do
+                        doThingsWithZ_and_Y
+                        ...
+                    Quux -&gt; do
+                        doThingsWithX_and_A
+                        ...
+            _ -&gt; ...
+    _ -&gt; blarg
+</code></pre>
+
+<p>```</p>
+
+<p>I find that to be incredibly ugly code. Why? Two reasons. One: I may no longer
+be a C programmer (if I ever was one) but I still agree with Linus that "If you
+need more than three levels of indent, you're screwed anyway, and should fix
+your program." This code has seven!</p>
+
+<p>I could fix this first problem by hacking off some of the indent levels and
+putting them in a new function, i.e.</p>
+
+<p>```haskell</p>
+
+<p>  let a = "cromulent" in do</p>
+
+<pre><code>x &lt;- getX
+y &lt;- getY
+z &lt;- getZ
+case requestType of
+    "x" -&gt; processX x y z
+    "y" -&gt; processY x y z
+    _ -&gt; blarg
+</code></pre>
+
+<p>processX x y z a = ...</p>
+
+<pre><code>res &lt;- runX
+case errorCondition res of
+    Nothing -&gt;
+        case otherCondition of
+            Foo -&gt; do
+                doThingsWithX_and_Y
+                ...
+            Bar -&gt; do
+                doThingsWithA_and_Z
+                ...
+    _ -&gt; ...
+</code></pre>
+
+<p>processY x y z a = ...</p>
+
+<pre><code>res &lt;- runY
+case errorCondition res of
+    Nothing -&gt;
+        case yetAnotherCondition of
+            Baz -&gt; do
+                doThingsWithZ_and_Y
+                ...
+            Quux -&gt; do
+                doThingsWithX_and_A
+                ...
+    _ -&gt; ...
+</code></pre>
+
+<p>```</p>
+
+<p>However, that brings me to the second reason I think this is ugly code. Even
+when chopped into bitty functions, it's still too imperative. If I simply chop
+out segments of the logic and put them in small functions, I haven't gotten rid
+of the underlying problem, which is too-deep, "turn left then turn right" code.
+Plus I've created a bunch of functions that are useless in general, and are so
+strongly connected to their callers that in practice I end up needing to pass a
+ton of variables.</p>
+
+<h2>Solutions</h2>
+
+<p>So let's fix up this code, and hopefully improve my intuition in the process.</p>
+
+<p>One helpful idea occurred to me right away: use closures and define the shrimpy
+functions under a 'where'. So the previous becomes:</p>
+
+<p>```haskell</p>
+
+<p>  let a = "cromulent" in do</p>
+
+<pre><code>x &lt;- getX
+y &lt;- getY
+z &lt;- getZ
+case requestType of
+    "x" -&gt; processX
+    "y" -&gt; processY
+    _ -&gt; blarg
+</code></pre>
+
+<p>  where</p>
+
+<pre><code>processX = ...
+    res &lt;- runX
+    case errorCondition res of
+        Nothing -&gt;
+            case otherCondition of
+                Foo -&gt; do
+                    doThingsWithX_and_Y
+                    ...
+                Bar -&gt; do
+                    doThingsWithA_and_Z
+                    ...
+        _ -&gt; ...
+
+processY = ...
+    res &lt;- runY
+    case errorCondition res of
+        Nothing -&gt;
+            case yetAnotherCondition of
+                Baz -&gt; do
+                    doThingsWithZ_and_Y
+                    ...
+                Quux -&gt; do
+                    doThingsWithX_and_A
+                    ...
+        _ -&gt; ...
+</code></pre>
+
+<p>```</p>
+
+<p>That strikes me as a reasonable change that alleviates the indentation problem.
+Those specific, tightly coupled functions one must create now get access to
+variables in the outer scope, and aren't visible outside of that scope.</p>
+
+<p>But, I still feel this is too imperative. (There's another problem, too. This
+won't compile for reasons I'll get to below. But let's stick to the ugly factor
+for now.) Can I do better than "If this then do that else do this?"</p>
+
+<p>Next insight: To make this more declarative and functional, I can take the case
+switiching out of my <em>manual</em> control and put it into the capable hands of the
+compiler. That means pattern matching on function arguments. So now:</p>
+
+<p>```haskell</p>
+
+<p>  let a = "cromulent" in do</p>
+
+<pre><code>x &lt;- getX
+y &lt;- getY
+z &lt;- getZ
+processRequest requestType
+</code></pre>
+
+<p>  where</p>
+
+<pre><code>processRequest "x" = ...
+    res &lt;- runX
+    case errorCondition res of
+        Nothing -&gt;
+            case otherCondition of
+                Foo -&gt; do
+                    doThingsWithX_and_Y
+                    ...
+                Bar -&gt; do
+                    doThingsWithA_and_Z
+                    ...
+        _ -&gt; ...
+processRequest "y" = ...
+    res &lt;- runY
+    case errorCondition res of
+        Nothing -&gt;
+            case yetAnotherCondition of
+                Baz -&gt; do
+                    doThingsWithZ_and_Y
+                    ...
+                Quux -&gt; do
+                    doThingsWithX_and_A
+                    ...
+processRequest _ = blarg
+</code></pre>
+
+<p>```</p>
+
+<p>This is shorter and more declarative. I could iterate the process to remove the
+inner case statements, too.</p>
+
+<p>The take away from this is: <strong>when I feel like writing a case statement, I should
+instead write a function with argument pattern-matching.</strong></p>
+
+<p>Except there's a compilation problem, as mentioned above. When I was going on
+about closures, and variables being available in inner functions, I confused
+'let' and 'where' variables with 'do' variables. In the examples above, <code>x</code>, <code>y</code>,
+and <code>z</code> are out of scope in <code>processRequest</code>! To see why, consider this smaller
+example:</p>
+
+<p>```haskell</p>
+
+<p>broken = do</p>
+
+<pre><code>x &lt;- someAught
+runIt
+</code></pre>
+
+<p>  where</p>
+
+<pre><code>runIt = someProcess x
+</code></pre>
+
+<p>```</p>
+
+<p>This doesn't work because <code>x</code> is not local to the "scope" as defined by indenting
+-- it's local to the monad that is running. <code>runIt</code> is defined external to the
+action going on inside to the 'do', so it doesn't get to see <code>x</code>. If we
+de-sugar, we see</p>
+
+<p>```haskell</p>
+
+<p>broken = someAught >= (\x -> runIt)
+  where</p>
+
+<pre><code>runIt = someProcess x -- Not in scope: `x'
+</code></pre>
+
+<p><code>``
+This is annoying when, for example, all of my deeper code (like the bodies of
+</code>processRequest<code>above) want the result of the same computations. If every
+branch of code uses</code>runX<code>and</code>runY`, must I write the code to run those
+actions in each body separately? Where's the code sharing?</p>
+
+<p>I haven't figured a good solution to this yet.</p>
+]]></content>
+  </entry>
+  
+</feed>
