@@ -1,10 +1,13 @@
 ---
-published: false
+published: true
 layout: post
 categories: functional-programming
 title: Ditching the Imperative
 date: 2012-03-01 11:40
 comments: true
+---
+
+Problems
 ---
 
 I still have a bad habit of busting out code that wants to branch a lot, because
@@ -19,6 +22,7 @@ For instance, right now I have
 
 ```haskell
 
+  let a = "cromulent" in do
     x <- getX
     y <- getY
     z <- getZ
@@ -32,7 +36,7 @@ For instance, right now I have
                             doThingsWithX_and_Y
                             ...
                         Bar -> do
-                            doThingsWithX_and_Z
+                            doThingsWithA_and_Z
                             ...
                 _ -> ...
         "y" ->
@@ -44,7 +48,7 @@ For instance, right now I have
                             doThingsWithZ_and_Y
                             ...
                         Quux -> do
-                            doThingsWithX_and_Y
+                            doThingsWithX_and_A
                             ...
                 _ -> ...
         _ -> blarg
@@ -61,15 +65,16 @@ putting them in a new function, i.e.
 
 ```haskell
 
+  let a = "cromulent" in do
     x <- getX
     y <- getY
     z <- getZ
     case requestType of
-        "x" -> processX
-        "y" -> processY
+        "x" -> processX x y z
+        "y" -> processY x y z
         _ -> blarg
 
-processX = ...
+processX x y z a = ...
     res <- runX
     case errorCondition res of
         Nothing ->
@@ -78,11 +83,11 @@ processX = ...
                     doThingsWithX_and_Y
                     ...
                 Bar -> do
-                    doThingsWithX_and_Z
+                    doThingsWithA_and_Z
                     ...
         _ -> ...
 
-processY = ...
+processY x y z a = ...
     res <- runY
     case errorCondition res of
         Nothing ->
@@ -91,20 +96,22 @@ processY = ...
                     doThingsWithZ_and_Y
                     ...
                 Quux -> do
-                    doThingsWithX_and_Y
+                    doThingsWithX_and_A
                     ...
         _ -> ...
 
 ```
 
 However, that brings me to the second reason I think this is ugly code. Even
-when chopped into bitty functions, it's still too imperative. (There's another
-problem, too. This won't compile for reasons I'll get to below. But let's stick
-to the ugly factor for now.) If I simply chop out segments of the logic and put
-them in small functions, I haven't gotten rid of the underlying problem, which
-is too-deep, "turn left then turn right" code.  Plus I've created a bunch of
-functions that are useless in general, and are so strongly connected to their
-callers that in practice I end up needing to pass a ton of variables.
+when chopped into bitty functions, it's still too imperative. If I simply chop
+out segments of the logic and put them in small functions, I haven't gotten rid
+of the underlying problem, which is too-deep, "turn left then turn right" code.
+Plus I've created a bunch of functions that are useless in general, and are so
+strongly connected to their callers that in practice I end up needing to pass a
+ton of variables.
+
+Solutions
+---
 
 So let's fix up this code, and hopefully improve my intuition in the process.
 
@@ -113,6 +120,7 @@ functions under a 'where'. So the previous becomes:
 
 ```haskell
 
+  let a = "cromulent" in do
     x <- getX
     y <- getY
     z <- getZ
@@ -130,7 +138,7 @@ functions under a 'where'. So the previous becomes:
                         doThingsWithX_and_Y
                         ...
                     Bar -> do
-                        doThingsWithX_and_Z
+                        doThingsWithA_and_Z
                         ...
             _ -> ...
 
@@ -143,7 +151,7 @@ functions under a 'where'. So the previous becomes:
                         doThingsWithZ_and_Y
                         ...
                     Quux -> do
-                        doThingsWithX_and_Y
+                        doThingsWithX_and_A
                         ...
             _ -> ...
 
@@ -153,8 +161,9 @@ That strikes me as a reasonable change that alleviates the indentation problem.
 Those specific, tightly coupled functions one must create now get access to
 variables in the outer scope, and aren't visible outside of that scope.
 
-But, I still feel this is too imperative. Can I do better than "If this then
-do that else do this?"
+But, I still feel this is too imperative. (There's another problem, too. This
+won't compile for reasons I'll get to below. But let's stick to the ugly factor
+for now.) Can I do better than "If this then do that else do this?"
 
 Next insight: To make this more declarative and functional, I can take the case
 switiching out of my *manual* control and put it into the capable hands of the
@@ -162,6 +171,7 @@ compiler. That means pattern matching on function arguments. So now:
 
 ```haskell
 
+  let a = "cromulent" in do
     x <- getX
     y <- getY
     z <- getZ
@@ -176,7 +186,7 @@ compiler. That means pattern matching on function arguments. So now:
                         doThingsWithX_and_Y
                         ...
                     Bar -> do
-                        doThingsWithX_and_Z
+                        doThingsWithA_and_Z
                         ...
             _ -> ...
     processRequest "y" = ...
@@ -188,7 +198,7 @@ compiler. That means pattern matching on function arguments. So now:
                         doThingsWithZ_and_Y
                         ...
                     Quux -> do
-                        doThingsWithX_and_Y
+                        doThingsWithX_and_A
                         ...
     processRequest _ = blarg
 
@@ -197,13 +207,13 @@ compiler. That means pattern matching on function arguments. So now:
 This is shorter and more declarative. I could iterate the process to remove the
 inner case statements, too.
 
-The take away from this: when I feel like writing a case statement, I should
-instead write a function with argument pattern-matching.
+The take away from this is: **when I feel like writing a case statement, I should
+instead write a function with argument pattern-matching.**
 
 Except there's a compilation problem, as mentioned above. When I was going on
 about closures, and variables being available in inner functions, I confused
 'let' and 'where' variables with 'do' variables. In the examples above, `x`, `y`,
-and `z` are out of scope in processRequest! To see why, consider this smaller
+and `z` are out of scope in `processRequest`! To see why, consider this smaller
 example:
 
 ```haskell
