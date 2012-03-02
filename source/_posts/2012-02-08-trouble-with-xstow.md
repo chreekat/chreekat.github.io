@@ -3,6 +3,7 @@ published: true
 layout: post
 title: Trouble with xstow
 comments: true
+categories: linux
 ---
 
 I am trying to use xstow to manage deploying a set of scripts to ~/bin. However,

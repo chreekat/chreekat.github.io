@@ -2,6 +2,7 @@
 layout: post
 title: More Fun with Yesod Authorization
 comments: true
+categories: yesod haskell functional programming
 ---
 
 I was inspired by Felipe Lessa's post about

@@ -1,7 +1,7 @@
 ---
 published: true
 layout: post
-categories: functional-programming
+categories: haskell functional programming
 title: Ditching the Imperative
 date: 2012-03-01 11:40
 comments: true

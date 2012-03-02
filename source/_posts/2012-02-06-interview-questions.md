@@ -3,6 +3,7 @@ published: false
 layout: post
 title: Interview Questions
 comments: true
+categories: programming interviews
 ---
 
 I recently had my first "real interview" in years, and bombed it appropriately.
