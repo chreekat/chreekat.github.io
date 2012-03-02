@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: yesod | Still Testing]]></title>
+  <link href="http://chreekat.github.com/blog/categories/yesod/atom.xml" rel="self"/>
+  <link href="http://chreekat.github.com/"/>
+  <updated>2012-03-01T18:51:24-08:00</updated>
+  <id>http://chreekat.github.com/</id>
+  <author>
+    <name><![CDATA[Bryan Richter]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[More Fun with Yesod Authorization]]></title>
+    <link href="http://chreekat.github.com/blog/2012/02/02/fun-with-yesod-authorization/"/>
+    <updated>2012-02-02T00:00:00-08:00</updated>
+    <id>http://chreekat.github.com/blog/2012/02/02/fun-with-yesod-authorization</id>
+    <content type="html"><![CDATA[<p>I was inspired by Felipe Lessa's post about
+<a href="http://blog.felipe.lessa.nom.br/?p=7">abstracting Yesod permissions</a>. Thanks
+for writing it, Felipe! I had only just discovered <code>isAuthorized</code>, and that post
+made me all the more excited to go about refactoring my authorization code.</p>
+
+<p>Unfortunately I had a little trouble working Felipe's method into my own
+project. This was probably due in no small part to my too-recent discovery of
+<code>isAuthorized</code> and the <code>AuthResult</code> type. After much tinkering, I narrowed the
+difficulties down to just one (and a half) points of contention:</p>
+
+<ol>
+<li>Permission values are taken to mean actions: "Permission to &lt;do
+action&gt;". But RESTful routes are <em>also</em> taken to mean actions. The
+arguments <code>BlogR True</code> clearly mean "Write to BlogR." Thus,
+<code>permissionsRequiredFor</code> provides superfluous information. <code>Post</code> == <code>BlogR
+True</code> == "Post a Blog".</li>
+<li>(Actually 1.5) To paraphrase hlint, "Why not foldM?" :)</li>
+</ol>
+
+
+<p>To resolve the first point, I propose this:</p>
+
+<p>``` haskell
+-- Permission replacement
+data Credential = LoggedIn | IsAdmin</p>
+
+<h2>-- permissionsRequiredFor replacement</h2>
+
+<p>requiredCredentials :: Route Blog -> Bool -> [Credential]
+requiredCredentials BlogR      True = [IsAdmin]
+requiredCredentials (EntryR _) True = [LoggedIn]
+requiredCredentials _          _    = []
+```</p>
+
+<p>Note that this new function does the same thing as the one it replaces, but
+reading it gives us more information: we know the action from the route, and
+we also know what credentials a user needs to perform that action.</p>
+
+<p>If that doesn't immediately seem crucial, consider that many actions may be
+satisfied by the same credential. If I have a box with a key, it is assumed that
+I may do anything with the <em>contents</em> of that box provided I have the key. In
+other words,</p>
+
+<p>``` haskell
+data Credentials = HasKey</p>
+
+<p>requiredCredentials PutInBoxR ... = [HasKey BoxID]
+requiredCredentials TakeFromBoxR  = [HasKey BoxID]
+```</p>
+
+<p>With Permissions, either you write separate permissions that do the same thing
+(GetBox, PutBox), or you break your semantic model and use a single Permission
+for both ("permission to Box?")</p>
+
+<p>For the second point, note that <code>isAuthorizedTo</code> can be written like so (with a
+couple more name changes to sound sensible with <code>Credential</code>):</p>
+
+<p>``` haskell
+isAuthorizedTo :: Maybe (Entity User)</p>
+
+<pre><code>           -&gt; [Credential]
+           -&gt; YesodDB sub Blog AuthResult
+</code></pre>
+
+<p>Nothing <code>isAuthorizedTo</code> _  = return AuthenticationRequired
+Just u  <code>isAuthorizedTo</code> ps = foldM hasCred Authorized ps
+  where</p>
+
+<pre><code>hasCred Authorized p = u `hasCredential` p
+hasCred badAuth    _ = return badAuth
+</code></pre>
+
+<p>```</p>
+]]></content>
+  </entry>
+  
+</feed>
