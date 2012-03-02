@@ -40,7 +40,10 @@ Note that this new function does the same thing as the one it replaces, but
 reading it gives us more information: we know the action from the route, and
 we also know what credentials a user needs to perform that action.
 
-If that doesn't immediately seem crucial, consider that many actions may be satisfied by the same credential. If I have a box with a key, it is assumed that I may do anything with the _contents_ of that box provided I have the key. In other words,
+If that doesn't immediately seem crucial, consider that many actions may be
+satisfied by the same credential. If I have a box with a key, it is assumed that
+I may do anything with the _contents_ of that box provided I have the key. In
+other words,
 
 ``` haskell
 data Credentials = HasKey
@@ -49,7 +52,9 @@ requiredCredentials PutInBoxR ... = [HasKey BoxID]
 requiredCredentials TakeFromBoxR  = [HasKey BoxID]
 ```
 
-With Permissions, either you write separate permissions that do the same thing (GetBox, PutBox), or you break your semantic model and use a single Permission for both ("permission to Box?")
+With Permissions, either you write separate permissions that do the same thing
+(GetBox, PutBox), or you break your semantic model and use a single Permission
+for both ("permission to Box?")
 
 For the second point, note that `isAuthorizedTo` can be written like so (with a
 couple more name changes to sound sensible with `Credential`):
