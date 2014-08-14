@@ -1,0 +1,105 @@
+<!doctype html>
+
+<html>
+<head>
+<title>What is terminfo-hs?</title>
+<link rel=stylesheet href="main-style.css" type="text/css" media=screen>
+</head>
+<body>
+<h1>terminfo-hs</h1>
+
+<p>
+Recently I finished a programming project called <a
+href="http://hackage.haskell.org/package/terminfo-hs">terminfo-hs</a>. It
+is so nerdy and low-level that it might be impossible to describe. On top
+of that, even those who would understand it might (rightly?) point out that
+it doesn't do anything that hasn't been done successfully by other projects
+for thirty years.
+
+<p>
+Just for fun, I'll take a shot at describing it, anyway. Let's start with
+the observation that my computer screen is usually covered in nothing but
+text. All that text is in a terminal, which is sometimes also called a
+console. Terminals are just old fashioned computer interfaces, something
+that existed long before desktops, icons, and even before the mouse. In
+those days you didn't have graphics; you just had text.
+
+<p>
+Old doesn't mean bad, however. When <i>everything</i> is text, interesting
+things become possible. Any program you run in a terminal just moves text
+around, so all terminal programs sort of naturally work together. Any new
+tool that works well with text will also work with every other program you
+already use. Email, word processing, programming, calculators, system
+management, they all sort of fit together.
+
+<p>
+I could go on (and on, and on, and...), but suffice to say, terminals are
+still important, and people like me still use them more than anything else.
+
+<p>
+But terminals are, in fact, really damn old. They're a little quirky
+sometimes. There's a lot of different <i>types</i> of terminals. They all have
+commands for moving the cursor around or drawing different colors, but
+those commands are not always the same.
+
+<p>
+Story time! I often use a program called <tt>mutt</tt> for reading and writing
+emails. <tt>mutt</tt> runs in a terminal, and it does fun things like printing
+colors and splitting the terminal into two "windows". It has to use a lot
+of terminal commands to do all that fun stuff!
+
+<p>
+It would suck if <tt>mutt</tt> only worked on one, single terminal. But at the same
+time, making it work on many terminals could be hard. The guy who wrote
+<tt>mutt</tt> didn't want to learn how every single "special snowflake" terminal
+goes about printing red, for instance.
+
+<p>
+Luckily, people had come up with an easy way to write programs that could
+work on any terminal. <tt>mutt</tt>'s author (Michael Elkins) didn't, in fact, have
+to know anything about terminals. Instead, he just had to use some
+pre-written code that already knows how to look that stuff up. He could
+just write, "Print red", and the pre-written code would figure out what
+terminal the user was using, find the command that tells that terminal to
+print red, and then send the command. Easy!
+
+<p>
+So let's go one level deeper. How does that pre-written code know what
+capabilities all the terminals have? How does it know what commands to use?
+
+<p>
+Well, first of all, let me tell you the name of this pre-written code. It's
+called ncurses. Don't ask why.
+
+<p>
+So how does ncurses work?
+
+<p>
+First off, the answers to questions like, "How
+many colors can the terminal print?" and "How do you specify 'red'?" are
+stored in files called terminfo databases. There's one database for each
+terminal. ncurses simply reads those databases, looks up the right info,
+then sends the proper commands to the terminal.
+
+<p>
+Now that I've describe ncurses, I can describe my project. I have created
+<b>new</b> code that can look up information in terminfo databases.  The only
+thing that's different about my project is that it is written in a different
+programming language than the original.
+
+<p>
+That's it. It's not even as powerful as ncurses -- it can only <i>look up</i>
+information; it can't use that information in any way. And if people wanted
+to use the language I've used, they already have a way to use the old code
+in the new language. So... what's the point?
+
+<p>
+Well, I actually plan on adding more code on top of this, eventually
+arriving at something that can be used the way ncurses is used. Besides
+demonstrating to potential employers that I am proficient in the language
+I'm using, it will relieve other programmers of the necessity of pulling in
+different code written in a different language. There are certain
+advantages to that, but that's a different story...
+
+</body>
+</html>

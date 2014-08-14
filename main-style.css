@@ -1,0 +1,51 @@
+body {
+  max-width: 30em;
+  margin-left: auto;
+  margin-right: auto;
+  font-family: Georgia, serif;
+  position: relative;
+}
+
+footer {
+  margin-top: 4em;
+  text-align: center;
+  font-size: 0.9em;
+}
+
+section {
+  border-top: 2px solid;
+}
+#nano-charts {
+  padding-left: 22.5px;
+}
+
+#nano-charts li {
+  display: inline;
+}
+
+.chreekat-logo {
+  position: absolute;
+  right: 32em;
+  top: 0em;
+  text-align: right;
+}
+
+.chreekat-logo img {
+    height: 25em;
+}
+
+.chreekat-logo .attribution {
+  font-size: small;
+  position: relative;
+  top: -2em;
+  right: 0.5em;
+  color: #eee;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
