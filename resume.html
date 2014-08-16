@@ -1,6 +1,40 @@
-Test.
+<!doctype html>
+<html>
+<head>
+    <title>Resume redirect</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
+<body>
+<h1>Totally my fault</h1>
 
-I moved to github pages for most of my web content, and now some links are
-broken. 
+<h2>Now at <a
+  href="http://www.chreekat.net/resume">http://www.chreekat.net/resume</a></h2>
+I switched to using Github Pages for my web content. Since my resume is a
+<a href="https://github.com/chreekat/resume/">git repo</a>, it now shows up
+at <b><a
+  href="http://www.chreekat.net/resume">http://www.chreekat.net/resume</a></b>.
+This page here, however (resume<i>.html</i>), is served from my User page
+instead of any Project page.
 
-You might want http://www.chreekat.net/resume.
+<p>
+I'll try to solve this more elegantly at some point.
+
+<p>
+In the meanwhile, expect a javascript redirect in <span id="countdown"></span>…
+
+<script>
+var val = 15;
+countdown = document.querySelector("#countdown");
+countdown.innerText = val;
+setInterval(function () {
+    --countdown.innerText;
+  }, 1000);
+
+setTimeout(function () {
+    document.location = "http://www.chreekat.net/resume"
+  }, val * 1000);
+</script>
+
+</body>
+</html>
+
