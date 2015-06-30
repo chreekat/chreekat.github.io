@@ -1,0 +1,82 @@
+==================================================================
+https://keybase.io/chreekat
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of http://chreekat.net
+  * I am chreekat (https://keybase.io/chreekat) on keybase.
+  * I have a public key with fingerprint 33C3 A599 DB85 EA9B 8BAA  1866 B202 2640 2006 8BFB
+
+To do so, I am signing this object:
+
+{
+    "body": {
+        "client": {
+            "name": "keybase.io node.js client",
+            "version": "0.7.9"
+        },
+        "key": {
+            "fingerprint": "33c3a599db85ea9b8baa1866b202264020068bfb",
+            "host": "keybase.io",
+            "key_id": "B202264020068BFB",
+            "uid": "58a03543fe578157402d23c378a0bd19",
+            "username": "chreekat"
+        },
+        "merkle_root": {
+            "ctime": 1435703104,
+            "hash": "c495192cfe7cf4ecee94762c986f39dc5750bdea71579e1981ebe4be9b0a51cebc8e7d64a6c741a4dd10a42e8f84ba19a51e96e472ca23daa7c2215b7eeb1688",
+            "seqno": 254536
+        },
+        "service": {
+            "hostname": "chreekat.net",
+            "protocol": "http:"
+        },
+        "type": "web_service_binding",
+        "version": 1
+    },
+    "ctime": 1435703192,
+    "expire_in": 157680000,
+    "prev": "f2e1567b5f00cc4303c2ac81eb08e5058be0880d47f3121f28c8a440d7a5fdc6",
+    "seqno": 4,
+    "tag": "signature"
+}
+
+which yields the signature:
+
+-----BEGIN PGP MESSAGE-----
+Version: GnuPG v1
+
+owFdkntQFVUcx+HKIyhSEpCK9LohDBNc9/24BjiXhJqJQFNSaGDO7p6F7cJd3Lsg
+iISGj64ow4AUOaCBKA8HNEKEQIJyVHQmJ3EKsMcQJDllE5aYitUuQ5N5/jrn/D7n
++/t9f79T4bfAzeTeYQpbbfYqu+9+6QbvtqFqSU0RwitiIWItQoRsGTo0Y+cAORCx
+InZYyAMntMiK2aGI0PKW0zzPRCL5UHXKikOnUAtj4ZDiSAM3HkuyIxOquapsaCEE
+IRCA4jiRZykIOJ7lAcBYmuZxFMdpEsVRlGZ5idclsxSn9r+syJxmhizqt7aHeVu8
+TY/lzQUoFqAERRISpBgWoxgdEXE9KaPf8yLGGaATqvOWhCwVQjvQjHpzoGrPhhmq
+osyZFjTZQDCSoBiUwFBSrwg4s4xHJEdhHC5IkBEkEgoQciRD4wLH0hLBiQLFUHoq
+CBg9PQcxjsUgD0kecjwKKEyAvMBCRqRJQAsMiQFSFDEUkDhkJZbkAcbpEORoSDK4
+AHBCBIARcByjeAZCHqNZVrfghJsdCmLFKZIi6GLjrObLAjTqNtr2iDuLAxozylUV
+TRGUbD2SpWm5VsO0VphrkFsgn9E2L5LByw5RH9rDU8V09JGGcHgkAgtyZRVmyAZB
+MTSL6svIA/N1TQmHGEUzPCWhqCCQBEoIOBCMZqAspFCK5SHKsqhIMhKB4ZiEswIL
+SBIVGUBJokD/Z1NvvQYydUmnnOkAWp4KkWKXKcTDzd3k5uVpMr6tm6/Pon//8mTV
+wr9o39iz64O7uBTT89dO9jacWXWzpzIKSzu9P+fg7vjH3vu2JCvAv7vwzFP7ujy/
+b9/X1F0+MNh7rmd2iSsmeiTqjYs/tw52HF1xbtaz4mpI7IMbl+s+GOsrjffe2LU4
+vTOvXinuCIm2lypsRFrisYFPtnrE/PHc6CWbLyzzTmvd+N3WA2vls5ZfftuemMTu
+Sjn84/Qh6cn+L58J7t5bWzAc1vhDvE9FysxwoFpi3TPw1f2O5p+817kSp60vhv6t
+eLReqbs4HeSHnk4tvbDOnJtycrjy5hE1Yf347T2p34wPnB9um+ivQ673lSxdvrhz
+YfHjiXe2xcduWdUrhvdlL51d0b7Nf+iVttH7hxIT+A0Jk0Mznp7V6MpAGPDgsK0j
+dOZeSjZmxkxTC94O93r2Vmd9j7kt+ot3tHVl+1fml/rtfOIjirHZx9pf7uz+U7zn
+KlTWvL+MCN/kb4k+Vj652l5Duur3Sn0IU9Tkc22qOuK69mvy2BZ8JK7AL1xrbD7o
+viOoqMFnERw9P8EfaTz6UtBye1L6KfPvUXdvBVfnjNcXxARcfWEiucEJNoemaukt
+x+/GJZ+orv1sZ/mnV0w11k0R7/Y3jpWqr7VMfjzkWtvytBzosNetNpvz37wQtmxw
+qilz++ehSZPNcVd2VNVeHrlTccC25vV0wdvHHvfqqbrG21WpHzK7qpjjXzdXwhP/
+AA==
+=yn+I
+-----END PGP MESSAGE-----
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/chreekat
+
+==================================================================
