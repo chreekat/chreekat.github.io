@@ -76,6 +76,9 @@ getAlert :: MonadHandler m => m (Maybe Html)
 --   <li>Have your site datatype instantiate <a>AuthMaster</a> (this is the
 --   hard part).</li>
 --   </ol>
+--   
+--   This module is not yet fit for general consumption. It is tightly
+--   coupled to some Snowdrift types and functions.
 module AuthSite
 
 -- | Foundation type for the subsite.
@@ -112,12 +115,7 @@ verifyAccountHandler :: AuthMaster master => HandlerT master IO TypedContent
 -- | This module sends emails, in case that wasn't obvious.
 --   <a>Network.Mail.Mime</a> or <a>Network.Mail.Mime.SES</a> have good
 --   options for this method.
-sendAuthEmail :: AuthMaster master => AuthMailMessage -> AuthEmail -> HandlerT master IO ()
-
--- | This is a cheapo synonym. Eventually AuthUser should be part of the
---   <a>AuthMaster</a> interface, for this module to be usable outside of
---   Snowdrift.
-type AuthUser = Entity User
+sendAuthEmail :: AuthMaster master => AuthEmail -> AuthMailMessage -> HandlerT master IO ()
 
 -- | The <a>type-safe URLs</a> associated with a site argument.
 
@@ -170,6 +168,11 @@ BadPassReset :: AuthMailMessage
 newtype AuthToken
 AuthToken :: Text -> AuthToken
 [fromAuthToken] :: AuthToken -> Text
+
+-- | This is a cheapo synonym. Eventually AuthUser should be part of the
+--   <a>AuthMaster</a> interface, for this module to be usable outside of
+--   Snowdrift.
+type AuthUser = Entity User
 
 -- | Generate a provisional user
 provisional :: Credentials -> Verification -> IO ProvisionalUser
