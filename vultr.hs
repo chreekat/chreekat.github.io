@@ -1,8 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RecordWildCards #-}
 
 {-
 import AllThatServantShit
@@ -14,16 +11,6 @@ type VultrAPI1
     = "app" :> "list" :> Get '[JSON] AppList
     = "auth" :> "info" :> Get '[JSON] AuthInfo
 
--- runX $ doc >>> css ".page-main .main-sidebar ul.nav-sidebar > li.dropdown.header ~ li > a" >>> getAttrValue "href"
---
--- runX $ doc >>> css "a[href~=\"#os\"]"
--- runX $ doc >>> css "#os"
-
-
-So yah, I can get all the ids for groups and all the ids for individual paths.
-Then I can group data. Then I can get endpoint data. Then I can combine the
-data. Data for everyone. Data.
-
 -}
 
 import Control.Applicative
@@ -32,6 +19,7 @@ import Data.Maybe
 import Data.Text (Text)
 import Text.HTML.Scalpel.Core
 import Text.Show.Prettyprint
+import qualified Data.Set as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
@@ -55,17 +43,6 @@ data Method = Get | Put
     deriving (Eq, Show)
 -}
 
-data ApiGroup = ApiGroup
-    { name :: Text
-    , ref :: Text
-    , endpoints :: [EndpointRef]
-    } deriving (Eq, Show)
-
-data EndpointRef = EndpointRef
-    { eref :: Text
-    , route :: Text
-    }
-    deriving (Eq, Show)
 
 t @. cs = AnyTag @: map hasClass cs
 
@@ -73,26 +50,6 @@ div_ = ("div" @.)
 
 id_ k = AnyTag @: ["id" @= T.unpack k]
 
-h = T.readFile "vultr.html"
-
--- | Get the API groups from the table of contents in the sidebar
-scrapeGroups :: Scraper Text [ApiGroup]
-scrapeGroups =
-    -- The first three matches are bogus introductory links
-    drop 3 <$>
-    chroots
-        (div_ ["page-main"]
-            // div_ ["main-sidebar"]
-            // "ul" @. ["nav-sidebar"]
-            // "li" @. ["dropdown"])
-        scrapeGroup
-    where
-    scrapeGroup =
-        ApiGroup
-            <$> text "a"
-            <*> attr "href" "a"
-            <*> chroots ("ul" @. ["nav"] // "li") scrapeRef
-    scrapeRef = EndpointRef <$> attr "href" "a" <*> text "a"
 
 data Endpoint = Endpoint
     { path :: Text
@@ -100,10 +57,10 @@ data Endpoint = Endpoint
     , needsAPIKey :: Text -- Bool
     , method :: Text -- Method
     , requiredAccess :: Text -- RequiredAccess
-    } deriving (Eq, Show)
+    } deriving (Eq, Ord, Show)
 
-scrapeEndpoint :: Text -> Scraper Text Endpoint
-scrapeEndpoint k = chroot (id_ k) $ do
+scrapeEndpoint :: Scraper Text Endpoint
+scrapeEndpoint = do
     [key, typ, acc] <-
         chroot "table" (inSerial $ do
             key <- seekNext (chroot "tr" scrape2ndTd)
@@ -120,15 +77,31 @@ scrapeEndpoint k = chroot (id_ k) $ do
         <*> pure typ
         <*> pure acc
     where
-    scrape2ndTd = inSerial (replicateM 2 (seekNext (pure ())) >> seekNext (text "td"))
+    scrape2ndTd =
+        inSerial (replicateM 2 (seekNext (pure ())) >> seekNext (text "td"))
 
---main = prettyPrint =<< (fromJust . flip scrapeStringLike (scrapeEndpoint "sshkey_destroy") <$> h)
+data ApiGroup = ApiGroup { name :: Text, endpoints :: [Endpoint] }
+    deriving (Eq, Ord, Show)
+
+guardedBy :: (Monad f, Alternative f) => f a -> (a -> Bool) -> f a
+x `guardedBy` b = do
+    x' <- x
+    x' <$ guard (b x')
+infixl 1 `guardedBy`
+
+scrapeApiGroup :: Scraper Text ApiGroup
+scrapeApiGroup =
+    ApiGroup <$> (text "h2") <*> chroots "div" scrapeEndpoint
+    `guardedBy` not . null . endpoints
+
+apiGroupRoot = div_ ["main-content"] // div_ ["content-row"]
+
+-- | Like scrape, but crap
+scrap :: Scraper Text a -> IO a
+scrap s = fromJust . flip scrapeStringLike s <$> T.readFile "vultr.html"
+
+main = prettyPrint . M.fromList . take 3 =<< scrap (chroots apiGroupRoot scrapeApiGroup)
+    where
+    sel = div_ ["main-content"] // div_ ["content-row"]
 --main = mapM_ prettyPrint =<< (fromJust . flip scrapeStringLike scrapeGroups <$> h)
 --main = prettyPrint =<< (fromJust . flip scrapeStringLike (html (AnyTag @: ["id" @= "sshkey_destroy"])) <$> h)
-main = do
-    h' <- h
-    let proc = fromJust . scrapeStringLike h'
-        groups = proc scrapeGroups -- fromJust . flip scrapeStringLike scrapeGroups <$> h
-        eps = (concatMap (map (proc . scrapeEndpoint . T.drop 1 . eref))) (map endpoints groups)
-        --eps = (concatMap (map (T.take 1 . eref))) (map endpoints groups)
-    mapM_ prettyPrint (take 5 eps)
