@@ -20,18 +20,22 @@ div_ = ("div" @.)
 
 id_ k = AnyTag @: ["id" @= T.unpack k]
 
--- Hodonk parsers
-
+-- | parse helper
 failParse who what = error (T.unpack who ++ " couldn't parse: " ++ T.unpack what)
 
+-- Hodonk parsers
+
+-- | "Yes", "No"
 parseBool "Yes" = True
 parseBool "No" = False
 parseBool x = failParse "parseBool" x
 
+-- | Parse a thing like "GET"; very straightforward
 parseMethod "GET" = Get
 parseMethod "POST" = Post
 parseMethod x = failParse "parseMethod" x
 
+-- | Parse a thing like "billing"; very straightforward
 parseRequiredAccess "" = None
 parseRequiredAccess "billing" = Billing
 parseRequiredAccess "dns" = Dns
@@ -42,23 +46,31 @@ parseRequiredAccess "subscriptions" = Subscriptions
 parseRequiredAccess "upgrade" = Upgrade
 parseRequiredAccess x = failParse "parseRequiredAccess" x
 
+-- | Parse a parameter line, which usually looks like
+--
+-- @name string (optional) New name for the SSH key@
 parseParameter x
-    | (n : t : ds) <- T.words x
-    -- Found three "bugs" in the page! :D
-    = let param t' d o = Just (Parameter n o t' (T.unwords ds))
-          p = case t of
-            "(optional," -> param ParamString (t : ds)
-            "Password"   -> param ParamString (t : ds)
-            -- Unify int and integer
-            "int"         -> param ParamInteger ds
-            -- And one non-bug. n:[t] == "No parameters."
-            "parameters." -> const Nothing
-            _            -> param (parseParamType t) ds
+    | x == "No parameters." = Nothing
+    | (nam : typ : desc) <- T.words x
+    -- Found two "bugs" in the page! :D Most param lines have the form
+    --
+    -- name type description
+    --
+    -- But a few are missing their type. We manually patch it in with static
+    -- matches.
+    = let param t' d o = Just (Parameter nam o t' (T.unwords desc))
+          p = case typ of
+            "(optional," -> param ParamString (typ : desc)
+            "Password"   -> param ParamString (typ : desc)
+            _            -> param (parseParamType typ) desc
       in p ("optional" `T.isInfixOf` x)
     | otherwise = failParse "parseParameter" x
 
+-- | E.g. "array"
 parseParamType "array" = ParamArray
+-- Both "integer" and "int" are used.
 parseParamType "integer" = ParamInteger
+parseParamType "int" = ParamInteger
 parseParamType "string" = ParamString
 parseParamType x = failParse "parseParamType" x
 
@@ -67,9 +79,13 @@ parseString = T.intercalate " " . concatMap T.words . T.lines
 
 -- Endpoint
 
+-- | Just taking what we can get. This is not a rich transformation.
 data ParamType = ParamArray  | ParamInteger | ParamString
     deriving (Eq, Show, Ord)
 
+-- | More workable version of the parameter lines, which start out like
+--
+-- @name string (optional) New name for the SSH key@
 data Parameter = Parameter
     { name :: Text
     , optional :: Bool
@@ -77,9 +93,11 @@ data Parameter = Parameter
     , description :: Text
     } deriving (Eq, Show)
 
+-- | Ez
 data Method = Post | Get
     deriving (Eq, Show)
 
+-- | I suppose this is the beginning of Vultr's fine-grained access control.
 data RequiredAccess
     = None
     | Billing
@@ -91,6 +109,7 @@ data RequiredAccess
     | Upgrade
     deriving (Eq, Show)
 
+-- | Behold its glory!!
 data Endpoint = Endpoint
     { path :: Text
     , description :: Text
@@ -101,9 +120,11 @@ data Endpoint = Endpoint
     , parameters :: [Parameter]
     } deriving (Eq, Show)
 
+-- | Simple wrapper over endpoint examples
 data Example = Example { request :: Text, response :: Text }
     deriving (Eq, Show)
 
+-- | Top-level scraper for Endpoint
 scrapeEndpoint :: Scraper Text Endpoint
 scrapeEndpoint = do
     [key, method, acc] <-
@@ -131,22 +152,24 @@ scrapeEndpoint = do
 
 -- ApiGroup
 
+-- | This might go away. Wait, this should *definitely* go away.
 data ApiGroup = ApiGroup { name :: Text, endpoints :: [Endpoint] }
     deriving (Eq, Show)
 
+-- | This should also go away.
 scrapeApiGroup :: Scraper Text ApiGroup
 scrapeApiGroup =
     ApiGroup <$> (text "h2") <*> chroots ("div" `atDepth` 1) scrapeEndpoint
     `guardedBy` not . null . endpoints
 
+-- main helpers
+
+-- | Helper that seems pretty natural to me
 guardedBy :: (Monad f, Alternative f) => f a -> (a -> Bool) -> f a
 x `guardedBy` b = do
     x' <- x
     x' <$ guard (b x')
 infixl 1 `guardedBy`
-
-
--- main helpers
 
 apiGroupRoot = div_ ["main-content"] // div_ ["content-row"]
 
