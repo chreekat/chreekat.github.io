@@ -71,7 +71,7 @@ data EndpointRef = EndpointRef
     }
     deriving (Eq, Show)
 
-t @. cs = AnyTag @: (map hasClass cs)
+t @. cs = AnyTag @: map hasClass cs
 
 div_ = ("div" @.)
 
@@ -80,27 +80,21 @@ h = T.readFile "vultr.html"
 -- | Get the API groups from the table of contents in the sidebar
 scrapeGroups :: Scraper Text [ApiGroup]
 scrapeGroups =
-    chroot @Text
+    -- The first three matches are bogus introductory links
+    drop 3 <$>
+    chroots
         (div_ ["page-main"]
             // div_ ["main-sidebar"]
-            // "ul" @. ["nav-sidebar"])
-        (inSerial $ do
-            -- Skip past 2nd header
-            _ <- replicateM 2 (seekNext (matches ("li" @. ["dropdown", "header"])))
-            -- Move forward over the current siblings as many times as it's
-            -- possible to find a new group
-            many (seekNext scrapeApiGroup))
+            // "ul" @. ["nav-sidebar"]
+            // "li" @. ["dropdown"])
+        scrapeGroup
     where
-    scrapeApiGroup =
+    scrapeGroup =
         ApiGroup
             <$> text "a"
             <*> attr "href" "a"
-            <*> scrapeEndpointRefs
-    -- Enumerate all the group's endpoints
-    scrapeEndpointRefs =
-        chroots
-            ("ul" @. ["nav"] // "li")
-            (EndpointRef <$> attr "href" "a" <*> text "a")
+            <*> chroots ("ul" @. ["nav"] // "li") scrapeRef
+    scrapeRef = EndpointRef <$> attr "href" "a" <*> text "a"
 
 -- main = prettyPrint =<< (fromJust . flip scrapeStringLike (html (AnyTag @: ["id" @= "sshkey_destroy"])) <$> h)
 main = mapM_ prettyPrint =<< (fromJust . flip scrapeStringLike scrapeGroups <$> h)
