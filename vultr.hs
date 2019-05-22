@@ -37,17 +37,13 @@ import qualified Data.Text.IO as T
 
 {-
 data Endpoint = Endpoint
-    { name :: EndpointName
-    , path :: Text
-    , needsAPIKey :: Bool
+    { path :: Text
     , description :: Text
+    , needsAPIKey :: Bool
     , method :: Method
     , requiredAccess :: RequiredAccess
     , example :: EndpointExample
     } deriving (Eq, Show)
-
-newtype EndpointName = EndpointName Text
-    deriving (Eq, Show)
 
 data RequiredAccess = Subscriptions | Provisioning | Upgrade | Dns
     deriving (Eq, Show)
@@ -66,7 +62,7 @@ data ApiGroup = ApiGroup
     } deriving (Eq, Show)
 
 data EndpointRef = EndpointRef
-    { ref :: Text
+    { eref :: Text
     , route :: Text
     }
     deriving (Eq, Show)
@@ -74,6 +70,8 @@ data EndpointRef = EndpointRef
 t @. cs = AnyTag @: map hasClass cs
 
 div_ = ("div" @.)
+
+id_ k = AnyTag @: ["id" @= T.unpack k]
 
 h = T.readFile "vultr.html"
 
@@ -96,5 +94,41 @@ scrapeGroups =
             <*> chroots ("ul" @. ["nav"] // "li") scrapeRef
     scrapeRef = EndpointRef <$> attr "href" "a" <*> text "a"
 
--- main = prettyPrint =<< (fromJust . flip scrapeStringLike (html (AnyTag @: ["id" @= "sshkey_destroy"])) <$> h)
-main = mapM_ prettyPrint =<< (fromJust . flip scrapeStringLike scrapeGroups <$> h)
+data Endpoint = Endpoint
+    { path :: Text
+    , description :: Text
+    , needsAPIKey :: Text -- Bool
+    , method :: Text -- Method
+    , requiredAccess :: Text -- RequiredAccess
+    } deriving (Eq, Show)
+
+scrapeEndpoint :: Text -> Scraper Text Endpoint
+scrapeEndpoint k = chroot (id_ k) $ do
+    [key, typ, acc] <-
+        chroot "table" (inSerial $ do
+            key <- seekNext (chroot "tr" scrape2ndTd)
+            typ <- seekNext (chroot "tr" scrape2ndTd)
+            acc <-
+                seekNext (chroot "tr" scrape2ndTd)
+                <|> pure ""
+            pure [key, typ, acc]
+        )
+    Endpoint
+        <$> text ("h3" // "a")
+        <*> text "p"
+        <*> pure key
+        <*> pure typ
+        <*> pure acc
+    where
+    scrape2ndTd = inSerial (replicateM 2 (seekNext (pure ())) >> seekNext (text "td"))
+
+--main = prettyPrint =<< (fromJust . flip scrapeStringLike (scrapeEndpoint "sshkey_destroy") <$> h)
+--main = mapM_ prettyPrint =<< (fromJust . flip scrapeStringLike scrapeGroups <$> h)
+--main = prettyPrint =<< (fromJust . flip scrapeStringLike (html (AnyTag @: ["id" @= "sshkey_destroy"])) <$> h)
+main = do
+    h' <- h
+    let proc = fromJust . scrapeStringLike h'
+        groups = proc scrapeGroups -- fromJust . flip scrapeStringLike scrapeGroups <$> h
+        eps = (concatMap (map (proc . scrapeEndpoint . T.drop 1 . eref))) (map endpoints groups)
+        --eps = (concatMap (map (T.take 1 . eref))) (map endpoints groups)
+    mapM_ prettyPrint (take 5 eps)
