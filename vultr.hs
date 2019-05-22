@@ -3,6 +3,7 @@
 
 import Control.Applicative
 import Control.Monad
+import Data.List
 import Data.Maybe
 import Data.Text (Text)
 import Text.HTML.Scalpel.Core
@@ -18,14 +19,51 @@ div_ = ("div" @.)
 
 id_ k = AnyTag @: ["id" @= T.unpack k]
 
+-- Hodonk parsers
+
+parseBool "Yes" = pure True
+parseBool "No" = pure False
+parseBool _ = fail "parseBool"
+
+parseMethod "GET" = pure Get
+parseMethod "POST" = pure Post
+parseMethod _ = fail "parseMethod"
+
+parseRequiredAccess "" = pure None
+parseRequiredAccess "billing" = pure Billing
+parseRequiredAccess "dns" = pure Dns
+parseRequiredAccess "firewall" = pure Firewall
+parseRequiredAccess "manage_users" = pure ManageUsers
+parseRequiredAccess "provisioning" = pure Provisioning
+parseRequiredAccess "subscriptions" = pure Subscriptions
+parseRequiredAccess "upgrade" = pure Upgrade
+parseRequiredAccess _ = fail "parseRequiredAccess"
+
+-- | Smoosh whitespace. Probably a better way to do this in base...
+parseString = pure . T.intercalate " " . concatMap T.words . T.lines
+
 -- Endpoint
+
+data Method = Post | Get
+    deriving (Eq, Show)
+
+data RequiredAccess
+    = None
+    | Billing
+    | Dns
+    | Firewall
+    | ManageUsers
+    | Provisioning
+    | Subscriptions
+    | Upgrade
+    deriving (Eq, Show)
 
 data Endpoint = Endpoint
     { path :: Text
     , description :: Text
-    , needsAPIKey :: Text -- Bool
-    , method :: Text -- Method
-    , requiredAccess :: Text -- RequiredAccess
+    , needsAPIKey :: Bool
+    , method :: Method
+    , requiredAccess :: RequiredAccess
     , example :: Example
     , parameters :: Text
     } deriving (Eq, Show)
@@ -35,23 +73,23 @@ data Example = Example { request :: Text, response :: Text }
 
 scrapeEndpoint :: Scraper Text Endpoint
 scrapeEndpoint = do
-    [key, typ, acc] <-
+    [key, method, acc] <-
         chroot "table" (inSerial $ do
             key <- seekNext (chroot "tr" scrape2ndTd)
-            typ <- seekNext (chroot "tr" scrape2ndTd)
+            method <- seekNext (chroot "tr" scrape2ndTd)
             acc <-
                 seekNext (chroot "tr" scrape2ndTd)
                 <|> pure ""
-            pure [key, typ, acc]
+            pure [key, method, acc]
         )
     -- These ones aren't very distinguished
     [exReq, exResp, params] <- texts "code"
     Endpoint
         <$> text ("h3" // "a")
-        <*> text "p"
-        <*> pure key
-        <*> pure typ
-        <*> pure acc
+        <*> (parseString =<< text "p")
+        <*> parseBool key
+        <*> parseMethod method
+        <*> parseRequiredAccess acc
         <*> pure (Example exReq exResp)
         <*> pure params
     where
