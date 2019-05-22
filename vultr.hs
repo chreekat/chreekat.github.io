@@ -26,7 +26,12 @@ data Endpoint = Endpoint
     , needsAPIKey :: Text -- Bool
     , method :: Text -- Method
     , requiredAccess :: Text -- RequiredAccess
-    } deriving (Eq, Ord, Show)
+    , example :: Example
+    , parameters :: Text
+    } deriving (Eq, Show)
+
+data Example = Example { request :: Text, response :: Text }
+    deriving (Eq, Show)
 
 scrapeEndpoint :: Scraper Text Endpoint
 scrapeEndpoint = do
@@ -39,12 +44,16 @@ scrapeEndpoint = do
                 <|> pure ""
             pure [key, typ, acc]
         )
+    -- These ones aren't very distinguished
+    [exReq, exResp, params] <- texts "code"
     Endpoint
         <$> text ("h3" // "a")
         <*> text "p"
         <*> pure key
         <*> pure typ
         <*> pure acc
+        <*> pure (Example exReq exResp)
+        <*> pure params
     where
     scrape2ndTd =
         inSerial (replicateM 2 (seekNext (pure ())) >> seekNext (text "td"))
@@ -52,7 +61,7 @@ scrapeEndpoint = do
 -- ApiGroup
 
 data ApiGroup = ApiGroup { name :: Text, endpoints :: [Endpoint] }
-    deriving (Eq, Ord, Show)
+    deriving (Eq, Show)
 
 scrapeApiGroup :: Scraper Text ApiGroup
 scrapeApiGroup =
