@@ -152,11 +152,11 @@ scrapeEndpoint = do
 
 -- ApiGroup
 
--- | This might go away. Wait, this should *definitely* go away.
+-- | Groups of endpoints, kept around for documentation purposes.
 data ApiGroup = ApiGroup { name :: Text, endpoints :: [Endpoint] }
     deriving (Eq, Show)
 
--- | This should also go away.
+-- | Scrape API groups
 scrapeApiGroup :: Scraper Text ApiGroup
 scrapeApiGroup =
     ApiGroup <$> (text "h2") <*> chroots ("div" `atDepth` 1) scrapeEndpoint
