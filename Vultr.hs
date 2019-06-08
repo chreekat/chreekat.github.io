@@ -109,9 +109,12 @@ data RequiredAccess
     | Upgrade
     deriving (Eq, Show)
 
+newtype Path = Path [Text]
+    deriving (Eq, Show)
+
 -- | Behold its glory!!
 data Endpoint = Endpoint
-    { path :: Text
+    { path :: Path
     , description :: Text
     , needsAPIKey :: Bool
     , method :: Method
@@ -139,7 +142,7 @@ scrapeEndpoint = do
     -- These ones aren't very distinguished
     [exReq, exResp, params] <- texts "code"
     Endpoint
-        <$> text ("h3" // "a")
+        <$> (parsePath <$> text ("h3" // "a"))
         <*> (parseString <$> text "p")
         <*> pure (parseBool key)
         <*> pure (parseMethod method)
@@ -149,6 +152,9 @@ scrapeEndpoint = do
     where
     scrape2ndTd =
         inSerial (replicateM 2 (seekNext (pure ())) >> seekNext (text "td"))
+
+parsePath :: Text -> Path
+parsePath  = Path . filter (not . T.null) . T.splitOn "/"
 
 -- ApiGroup
 
