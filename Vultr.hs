@@ -80,8 +80,8 @@ parseParamType "int" = ParamInteger
 parseParamType "string" = ParamString
 parseParamType x = failParse "parseParamType" x
 
--- | Smoosh whitespace. Probably a better way to do this in base...
-parseString = T.intercalate " " . concatMap T.words . T.lines
+-- | Smoosh whitespace. Seems like a hack.
+parseString = T.unwords . T.words
 
 parsePath :: Text -> Path
 parsePath  = Path . filter (not . T.null) . T.splitOn "/"
