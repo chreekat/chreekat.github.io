@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE DataKinds #-}
 
 module Vultr where
 
@@ -9,6 +12,7 @@ import Control.Monad
 import Data.List
 import Data.Maybe
 import Data.Text (Text)
+import Servant.API
 import Text.HTML.Scalpel.Core
 import Text.Show.Prettyprint
 import qualified Data.Text as T
@@ -194,5 +198,13 @@ scrap :: Scraper Text a -> IO a
 scrap s = fromJust . flip scrapeStringLike s <$> T.readFile "vultr.html"
 
 main =
-    prettyPrint . take 5
+    prettyPrint . head . endpoints . head . drop 3
         =<< scrap (chroots apiGroupRoot scrapeApiGroup)
+
+newtype ApiKey = ApiKey Text
+    deriving (Eq, Show)
+
+-- Building AST elements.
+apiKeyHeader (Endpoint { needsAPIKey })
+    | needsAPIKey = [t|Header "API-Key" ApiKey|]
+    | otherwise = [t|Header' '[Optional, Strict] "API-Key" ApiKey|]
