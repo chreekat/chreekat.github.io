@@ -18,8 +18,9 @@ old.mkShell {
     (h.ghcWithPackages (p: [
       p.ghcid
       p.scalpel-core
-      p.doctest
+      p.servant
       p.show-prettyprint
+      p.template-haskell
     ]))
   ];
 }
