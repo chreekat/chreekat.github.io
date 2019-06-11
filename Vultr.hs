@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 
+module Vultr where
+
 import Control.Applicative
 import Control.Exception
 import Control.Monad
@@ -12,7 +14,9 @@ import Text.Show.Prettyprint
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
+-------------------
 -- Selector helpers
+-------------------
 
 t @. cs = AnyTag @: map hasClass cs
 
@@ -23,7 +27,9 @@ id_ k = AnyTag @: ["id" @= T.unpack k]
 -- | parse helper
 failParse who what = error (T.unpack who ++ " couldn't parse: " ++ T.unpack what)
 
+-----------------
 -- Hodonk parsers
+-----------------
 
 -- | "Yes", "No"
 parseBool "Yes" = True
@@ -77,7 +83,12 @@ parseParamType x = failParse "parseParamType" x
 -- | Smoosh whitespace. Probably a better way to do this in base...
 parseString = T.intercalate " " . concatMap T.words . T.lines
 
--- Endpoint
+parsePath :: Text -> Path
+parsePath  = Path . filter (not . T.null) . T.splitOn "/"
+
+-------------
+-- Data types
+-------------
 
 -- | Just taking what we can get. This is not a rich transformation.
 data ParamType = ParamArray  | ParamInteger | ParamString
@@ -87,11 +98,11 @@ data ParamType = ParamArray  | ParamInteger | ParamString
 --
 -- @name string (optional) New name for the SSH key@
 data Parameter = Parameter
-    { name :: Text
+    { pname :: Text
     , optional :: Bool
     , typ :: ParamType
     , description :: Text
-    } deriving (Eq, Show)
+    } deriving (Eq, Show, Ord)
 
 -- | Ez
 data Method = Post | Get
@@ -127,6 +138,14 @@ data Endpoint = Endpoint
 data Example = Example { request :: Text, response :: Text }
     deriving (Eq, Show)
 
+-- | Groups of endpoints, kept around for documentation purposes.
+data ApiGroup = ApiGroup { name :: Text, endpoints :: [Endpoint] }
+    deriving (Eq, Show)
+
+-----------
+-- Scrapers
+-----------
+
 -- | Top-level scraper for Endpoint
 scrapeEndpoint :: Scraper Text Endpoint
 scrapeEndpoint = do
@@ -153,22 +172,13 @@ scrapeEndpoint = do
     scrape2ndTd =
         inSerial (replicateM 2 (seekNext (pure ())) >> seekNext (text "td"))
 
-parsePath :: Text -> Path
-parsePath  = Path . filter (not . T.null) . T.splitOn "/"
-
--- ApiGroup
-
--- | Groups of endpoints, kept around for documentation purposes.
-data ApiGroup = ApiGroup { name :: Text, endpoints :: [Endpoint] }
-    deriving (Eq, Show)
-
 -- | Scrape API groups
 scrapeApiGroup :: Scraper Text ApiGroup
 scrapeApiGroup =
     ApiGroup <$> (text "h2") <*> chroots ("div" `atDepth` 1) scrapeEndpoint
     `guardedBy` not . null . endpoints
 
--- main helpers
+-- helpers
 
 -- | Helper that seems pretty natural to me
 guardedBy :: (Monad f, Alternative f) => f a -> (a -> Bool) -> f a
@@ -179,7 +189,7 @@ infixl 1 `guardedBy`
 
 apiGroupRoot = div_ ["main-content"] // div_ ["content-row"]
 
--- | Like scrape, but crap
+-- | Like scrape, but crap (is partial)
 scrap :: Scraper Text a -> IO a
 scrap s = fromJust . flip scrapeStringLike s <$> T.readFile "vultr.html"
 
