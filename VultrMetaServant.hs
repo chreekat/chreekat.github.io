@@ -1,62 +1,47 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+
+-- | Gonna generate me some Haskell code, string-wise. Template Haskell sux
 module VultrMetaServant where
 
-import Language.Haskell.TH hiding (Strict)
-import Servant.API
 import Data.Text (Text)
+import Servant.API
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 
-import Vultr
+import Vultr hiding (main)
 
---------------
--- Known types
---------------
+-- All we need is a printer. We can print Endpoint and basically we're done.
+printEndpoint :: Endpoint -> Text
+printEndpoint (Endpoint p d a m r e ps)
+    = printPath p
+    <:> printAddDescription d
+    <:> printApiHeader a
+    <:>  "LOL"
 
-------------------
--- Generated types
-------------------
+a <:> b = a <> " :> " <> b
 
--- Need to generate types for the parameters, like
-newtype SubId = SubId Int
-newtype BackupId = BackupId Text
-newtype ServerTag = ServerTag Text
+apiKeyTy = "ApiKey"
 
--- Also need types for the objects sent and received, like
-data Backup = Backup
-    { dateCreated :: Text -- FIXME: UTCTime
-    , description :: Text
-    , size :: Int
-    , status :: BackupStatus
-    } deriving (Eq, Show)
+printPath :: Path -> Text
+printPath (Path ps) = T.intercalate " :> " $ ps
 
--- | We don't exhaustively know the return types, so we need to leave an escape
--- hatch. (FIXME: Bytes, not Text)
-data BackupStatus
-    = Complete
-    | Unrecognized Text
-    deriving (Eq, Show)
+printApiHeader :: Bool -> Text
+printApiHeader True = "Header \"API-Key\" " <> apiKeyTy
+printApiHeader False = "Header' '['Strict, 'Optional] \"API-Key\" " <> apiKeyTy
 
---------------------------------
--- Manual example of an endpoint
---------------------------------
+-- | Add a description to a printed thing.
+printAddDescription :: Text -> Text
+printAddDescription  = id
 
--- The parts of Endpoint relevant to Servant:
---
--- path :: Path
--- needsAPIKey :: Bool
--- method :: Method
--- requiredAccess :: RequiredAccess
--- parameters :: [Parameter]
--- the response (which is part of Example)
+main = T.putStrLn $ printEndpoint nullEP
+    { path = Path (T.words "v1 backup list")
+    , needsAPIKey = True
+    , edescription = "List all backups on the current account. Required access: Subscriptions."
+    }
 
--- metaMethod :: Method -> _
--- metaMethod
---
-
+{-
 type A = "v1" :> "backup" :> "list"
-    :> $(apiKeyHeader (Endpoint { needsAPIKey = True }))
+    :> $(apiKeyHeader (nullEP { needsAPIKey = True }))
     :> (Description "Filter result set to only contain backups of this subscription object."
         :> QueryParam' '[Optional, Strict] "SUBID" SubId)
     :> (Description "Filter result set to only contain this backup"
@@ -64,4 +49,4 @@ type A = "v1" :> "backup" :> "list"
     :> Description "List all backups on the current account. Required access: Subscriptions."
     :> Get '[JSON] [(BackupId, Backup)]
 
-
+-}

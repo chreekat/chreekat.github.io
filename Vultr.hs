@@ -105,7 +105,7 @@ data Parameter = Parameter
     { pname :: Text
     , optional :: Bool
     , typ :: ParamType
-    , description :: Text
+    , pdescription :: Text
     } deriving (Eq, Show, Ord)
 
 -- | Ez
@@ -130,13 +130,16 @@ newtype Path = Path [Text]
 -- | Behold its glory!!
 data Endpoint = Endpoint
     { path :: Path
-    , description :: Text
+    , edescription :: Text
     , needsAPIKey :: Bool
     , method :: Method
     , requiredAccess :: RequiredAccess
     , example :: Example
     , parameters :: [Parameter]
     } deriving (Eq, Show)
+
+-- | Useful for test
+nullEP = Endpoint (Path []) "" False Get None (Example "" "") []
 
 -- | Simple wrapper over endpoint examples
 data Example = Example { request :: Text, response :: Text }
