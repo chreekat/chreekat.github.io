@@ -46,15 +46,15 @@ parseMethod "POST" = Post
 parseMethod x = failParse "parseMethod" x
 
 -- | Parse a thing like "billing"; very straightforward
-parseRequiredAccess "" = None
-parseRequiredAccess "billing" = Billing
-parseRequiredAccess "dns" = Dns
-parseRequiredAccess "firewall" = Firewall
-parseRequiredAccess "manage_users" = ManageUsers
-parseRequiredAccess "provisioning" = Provisioning
-parseRequiredAccess "subscriptions" = Subscriptions
-parseRequiredAccess "upgrade" = Upgrade
-parseRequiredAccess x = failParse "parseRequiredAccess" x
+parseAcl "" = None
+parseAcl "billing" = Billing
+parseAcl "dns" = Dns
+parseAcl "firewall" = Firewall
+parseAcl "manage_users" = ManageUsers
+parseAcl "provisioning" = Provisioning
+parseAcl "subscriptions" = Subscriptions
+parseAcl "upgrade" = Upgrade
+parseAcl x = failParse "parseAcl" x
 
 -- | Parse a parameter line, which usually looks like
 --
@@ -113,7 +113,7 @@ data Method = Post | Get
     deriving (Eq, Show)
 
 -- | I suppose this is the beginning of Vultr's fine-grained access control.
-data RequiredAccess
+data Acl
     = None
     | Billing
     | Dns
@@ -122,7 +122,7 @@ data RequiredAccess
     | Provisioning
     | Subscriptions
     | Upgrade
-    deriving (Eq, Show)
+    deriving (Eq, Show, Ord)
 
 newtype Path = Path [Text]
     deriving (Eq, Show)
@@ -133,7 +133,7 @@ data Endpoint = Endpoint
     , edescription :: Text
     , needsAPIKey :: Bool
     , method :: Method
-    , requiredAccess :: RequiredAccess
+    , requiredAccess :: Acl
     , example :: Example
     , parameters :: [Parameter]
     } deriving (Eq, Show)
@@ -172,7 +172,7 @@ scrapeEndpoint = do
         <*> (parseString <$> text "p")
         <*> pure (parseBool key)
         <*> pure (parseMethod method)
-        <*> pure (parseRequiredAccess acc)
+        <*> pure (parseAcl acc)
         <*> pure (Example exReq exResp)
         <*> pure (catMaybes (map parseParameter (T.lines params)))
     where
