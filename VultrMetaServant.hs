@@ -23,7 +23,7 @@ a <:> b = a <> " :> " <> b
 apiKeyTy = "ApiKey"
 
 printPath :: Path -> Text
-printPath (Path ps) = T.intercalate " :> " $ ps
+printPath (Path ps) = T.intercalate " :> " (map stringLit ps)
 
 printApiHeader :: Bool -> Text
 printApiHeader True = "Header \"API-Key\" " <> apiKeyTy
@@ -31,7 +31,7 @@ printApiHeader False = "Header' '['Strict, 'Optional] \"API-Key\" " <> apiKeyTy
 
 -- | Add a description to a printed thing.
 printAddDescription :: Text -> Text
-printAddDescription  = id
+printAddDescription t = "Description " <> stringLit t
 
 main = T.putStrLn $ printEndpoint nullEP
     { path = Path (T.words "v1 backup list")
@@ -39,6 +39,7 @@ main = T.putStrLn $ printEndpoint nullEP
     , edescription = "List all backups on the current account. Required access: Subscriptions."
     }
 
+stringLit t = "\"" <> t <> "\""
 {-
 type A = "v1" :> "backup" :> "list"
     :> $(apiKeyHeader (nullEP { needsAPIKey = True }))
