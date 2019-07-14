@@ -3,20 +3,34 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Vultr where
 
+import Control.Arrow
 import Control.Applicative
 import Control.Exception
 import Control.Monad
+import Data.Monoid
+import Data.Aeson
+import Data.Aeson.Internal
+import Data.Aeson.Types
+import Data.ByteString.Lazy (toStrict)
+import Data.Char
+import Data.Foldable
 import Data.List
 import Data.Maybe
 import Data.Text (Text)
+import Data.Text.Encoding
+import GHC.Generics
 import Servant.API
 import Text.HTML.Scalpel.Core
 import Text.Show.Prettyprint
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
+import qualified Data.Vector as V
 
 -------------------
 -- Selector helpers
