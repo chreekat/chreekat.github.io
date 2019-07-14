@@ -146,7 +146,8 @@ parseResponseJson x =
 
         tryJson blob =
             getFirst (mconcat (fmap First (
-                [ResponseUser <$ ifromJSON' @ User blob
+                [ ResponseUser <$ ifromJSON' @ User blob
+                , ResponseUserRef <$ ifromJSON' @ UserRef blob
                 ])))
 
     in do
@@ -174,6 +175,7 @@ userJsonParse = withObject "User" $ \v -> User
 data Response
     = NoResponse
     | ResponseUser
+    | ResponseUserRef -- ^ returns the API key as well
     | ResponseListOf Response
     | Wat Text
     deriving (Eq, Show, Ord)
@@ -190,6 +192,16 @@ data User = User
 -- | Needs custom parsing, fyi.
 instance FromJSON User where
     parseJSON = userJsonParse
+
+data UserRef = UserRef
+    { id :: Text
+    , apiKey :: Text
+    } deriving (Eq, Show, Ord)
+
+instance FromJSON UserRef where
+    parseJSON = withObject "UserRef" $ \v -> UserRef
+        <$> v .: "USERID"
+        <*> v .: "api_key"
 
 -- | Just taking what we can get. This is not a rich transformation.
 data ParamType = ParamArray  | ParamInteger | ParamString
