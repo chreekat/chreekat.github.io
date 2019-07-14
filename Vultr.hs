@@ -278,15 +278,15 @@ scrapeEndpoint = do
         <*> pure (parseMethod method)
         <*> pure (parseAcl acc)
         <*> pure (Example exReq exResp)
-        <*> pure (catMaybes (map parseParameter (T.lines params)))
+        <*> pure (mapMaybe parseParameter (T.lines params))
     where
     scrape2ndTd =
-        inSerial (replicateM 2 (seekNext (pure ())) >> seekNext (text "td"))
+        inSerial (replicateM_ 2 (seekNext (pure ())) >> seekNext (text "td"))
 
 -- | Scrape API groups
 scrapeApiGroup :: Scraper Text ApiGroup
 scrapeApiGroup =
-    ApiGroup <$> (text "h2") <*> chroots ("div" `atDepth` 1) scrapeEndpoint
+    ApiGroup <$> text "h2" <*> chroots ("div" `atDepth` 1) scrapeEndpoint
     `guardedBy` not . null . endpoints
 
 -- helpers
@@ -312,6 +312,6 @@ newtype ApiKey = ApiKey Text
     deriving (Eq, Show)
 
 -- Building AST elements.
-apiKeyHeader (Endpoint { needsAPIKey })
+apiKeyHeader Endpoint { needsAPIKey }
     | needsAPIKey = [t|Header "API-Key" ApiKey|]
     | otherwise = [t|Header' '[Optional, Strict] "API-Key" ApiKey|]
