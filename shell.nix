@@ -17,6 +17,7 @@ old.mkShell {
   buildInputs = [
     (h.ghcWithPackages (p: [
       p.ghcid
+      p.hlint
       p.scalpel-core
       p.servant
       p.show-prettyprint
