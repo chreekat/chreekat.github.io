@@ -124,6 +124,35 @@ parsePath  = Path . filter (not . T.null) . T.splitOn "/"
 --
 -------------------------
 
+-- | Use speculative json parsing to figure out the type of a response.
+parseResponseJson :: Text -> Maybe Response
+parseResponseJson x =
+    let
+        ifromJSON' :: FromJSON a => Value -> Maybe a
+        ifromJSON' x = case ifromJSON x of
+            ISuccess a -> Just a
+            _ -> Nothing
+
+        tryJson blob =
+            getFirst (mconcat (fmap First (
+                [ResponseUser <$ ifromJSON' @ User blob
+                ])))
+
+    in do
+    blob <- decodeStrict (encodeUtf8 x)
+    case blob of
+        Array x -> ResponseListOf <$> tryJson (V.head x)
+        _ -> tryJson blob
+
+-- | Writing the parser separate to keep the class decl short.
+userJsonParse :: Value -> Parser User
+userJsonParse = withObject "User" $ \v -> User
+    <$> v .: "USERID"
+    <*> v .: "name"
+    <*> v .: "email"
+    <*> (parseBool <$> v .: "api_enabled")
+    <*> v .: "acls"
+
 -------------
 -- Data types
 -------------
@@ -146,6 +175,10 @@ data User = User
     , apiEnabled :: Bool
     , acls :: [Acl]
     } deriving (Eq, Show, Ord)
+
+-- | Needs custom parsing, fyi.
+instance FromJSON User where
+    parseJSON = userJsonParse
 
 -- | Just taking what we can get. This is not a rich transformation.
 data ParamType = ParamArray  | ParamInteger | ParamString
