@@ -128,6 +128,16 @@ parsePath  = Path . filter (not . T.null) . T.splitOn "/"
 -- Data types
 -------------
 
+-- | This is the sum of possible response types from querying endpoints. Not to
+-- be confused with the actual response types, i.e. 'User', this sum is used to
+-- annotate Endpoint values.
+data Response
+    = NoResponse
+    | ResponseUser
+    | ResponseListOf Response
+    | Wat Text
+    deriving (Eq, Show, Ord)
+
 -- | Just taking what we can get. This is not a rich transformation.
 data ParamType = ParamArray  | ParamInteger | ParamString
     deriving (Eq, Show, Ord)
