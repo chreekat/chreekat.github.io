@@ -51,7 +51,9 @@ failParse who what = error (T.unpack who ++ " couldn't parse: " ++ T.unpack what
 
 -- | "Yes", "No"
 parseBool "Yes" = True
+parseBool "yes" = True
 parseBool "No" = False
+parseBool "no" = False
 parseBool x = failParse "parseBool" x
 
 -- | Parse a thing like "GET"; very straightforward
@@ -68,6 +70,7 @@ parseAcl "manage_users" = ManageUsers
 parseAcl "provisioning" = Provisioning
 parseAcl "subscriptions" = Subscriptions
 parseAcl "upgrade" = Upgrade
+parseAcl "support" = Support
 parseAcl x = failParse "parseAcl" x
 
 -- | Parse a parameter line, which usually looks like
@@ -136,6 +139,7 @@ data Acl
     | Provisioning
     | Subscriptions
     | Upgrade
+    | Support
     deriving (Eq, Show, Ord)
 
 newtype Path = Path [Text]
