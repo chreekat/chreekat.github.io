@@ -157,7 +157,13 @@ data Acl
     | Subscriptions
     | Upgrade
     | Support
-    deriving (Eq, Show, Ord)
+    deriving (Eq, Show, Ord, Generic)
+
+-- | Converts camelcase to snakecase in constructor tags.
+instance FromJSON Acl where
+    parseJSON = genericParseJSON defaultOptions {
+        constructorTagModifier = map toLower . camelTo2 '_'
+        }
 
 newtype Path = Path [Text]
     deriving (Eq, Show)
