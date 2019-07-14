@@ -16,9 +16,13 @@ printEndpoint (Endpoint p d a m r e ps)
     = printPath p
     <:> printAddDescription d
     <:> printApiHeader a
+    <:> printMethod m
     <:>  "LOL"
 
 a <:> b = a <> " :> " <> b
+
+printMethod :: Method -> Text
+printMethod = T.pack . show
 
 apiKeyTy = "ApiKey"
 
@@ -35,8 +39,9 @@ printAddDescription t = "Description " <> stringLit t
 
 main = T.putStrLn $ printEndpoint nullEP
     { path = Path (T.words "v1 backup list")
-    , needsAPIKey = True
     , edescription = "List all backups on the current account. Required access: Subscriptions."
+    , needsAPIKey = True
+    , method = Get
     }
 
 stringLit t = "\"" <> t <> "\""
