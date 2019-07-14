@@ -107,6 +107,23 @@ parseString = T.unwords . T.words
 parsePath :: Text -> Path
 parsePath  = Path . filter (not . T.null) . T.splitOn "/"
 
+-------------------------
+-- Parsing response types
+-------------------------
+--
+-- There are response types that have to be reverse engineered. Then, we have to
+-- figure out which endpoints return what sorts of responses. This is a bit of a
+-- chicken and egg problem, for which I propose the following solution.
+--
+-- One by one, we'll hand-write type declarations for response types.
+-- (Generating them would take an equal amount of custome code.) These decls
+-- will be part of the eventual Vultr API. Then we can write code that detects a
+-- response type and includes that info with the endpoint. Part of the detection
+-- code can use the JSON instances for the response types, since the example
+-- text we are parsing responses from is precisely JSON.
+--
+-------------------------
+
 -------------
 -- Data types
 -------------
