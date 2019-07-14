@@ -138,6 +138,15 @@ data Response
     | Wat Text
     deriving (Eq, Show, Ord)
 
+-- | API data about a Vultr user.
+data User = User
+    { id :: Text
+    , name :: Text
+    , email :: Text
+    , apiEnabled :: Bool
+    , acls :: [Acl]
+    } deriving (Eq, Show, Ord)
+
 -- | Just taking what we can get. This is not a rich transformation.
 data ParamType = ParamArray  | ParamInteger | ParamString
     deriving (Eq, Show, Ord)
