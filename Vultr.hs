@@ -107,6 +107,17 @@ parseString = T.unwords . T.words
 parsePath :: Text -> Path
 parsePath  = Path . filter (not . T.null) . T.splitOn "/"
 
+-- | Parse Responses. Besides hodonk parsers like the above, we get a little
+-- more sophisticated by attempting JSON parses of the example text to ascertain
+-- the type.
+parseResponse :: Text -> Response
+parseResponse "No response, check HTTP result code." = NoResponse
+parseResponse " " = NoResponse -- classy
+parseResponse "\n" = NoResponse -- extra classy
+parseResponse x
+    | Just t <- parseResponseJson x = t
+    | otherwise = Wat x
+
 -------------------------
 -- Parsing response types
 -------------------------
