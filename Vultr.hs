@@ -24,6 +24,7 @@ import Data.List
 import Data.Maybe
 import Data.Text (Text)
 import Data.Text.Encoding
+import Data.Vector ((!?))
 import GHC.Generics
 import Servant.API
 import Text.HTML.Scalpel.Core
@@ -152,7 +153,7 @@ parseResponseJson x =
     in do
     blob <- decodeStrict (encodeUtf8 x)
     case blob of
-        Array x -> ResponseListOf <$> tryJsonParse (V.head x)
+        Array x -> ResponseListOf <$> (tryJsonParse =<< x !? 0)
         _ -> tryJsonParse blob
 
 -- | Writing the parser separate to keep the class decl short.
