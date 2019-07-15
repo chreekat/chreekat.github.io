@@ -144,17 +144,16 @@ parseResponseJson x =
             ISuccess a -> Just a
             _ -> Nothing
 
-        tryJson blob =
+        tryJsonParse blob =
             getFirst (mconcat (fmap First (
                 [ ResponseUser <$ ifromJSON' @ User blob
                 , ResponseUserRef <$ ifromJSON' @ UserRef blob
                 ])))
-
     in do
     blob <- decodeStrict (encodeUtf8 x)
     case blob of
-        Array x -> ResponseListOf <$> tryJson (V.head x)
-        _ -> tryJson blob
+        Array x -> ResponseListOf <$> tryJsonParse (V.head x)
+        _ -> tryJsonParse blob
 
 -- | Writing the parser separate to keep the class decl short.
 userJsonParse :: Value -> Parser User
