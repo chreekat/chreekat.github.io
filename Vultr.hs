@@ -9,11 +9,10 @@
 
 module Vultr where
 
-import Control.Arrow
 import Control.Applicative
+import Control.Arrow
 import Control.Exception
 import Control.Monad
-import Data.Monoid
 import Data.Aeson
 import Data.Aeson.Internal
 import Data.Aeson.Types
@@ -22,6 +21,7 @@ import Data.Char
 import Data.Foldable
 import Data.List
 import Data.Maybe
+import Data.Monoid
 import Data.Text (Text)
 import Data.Text.Encoding
 import Data.Vector ((!?))
