@@ -138,23 +138,26 @@ parseResponse x
 
 -- | Use speculative json parsing to figure out the type of a response.
 parseResponseJson :: Text -> Maybe Response
-parseResponseJson x =
+parseResponseJson x = do
+    blob <- decodeStrict (encodeUtf8 x)
+    case blob of
+        Array x -> ResponseListOf <$> (tryJsonParse =<< x !? 0)
+        _ -> tryJsonParse blob
+
+-- | See if we can't find a Response out of a Value
+tryJsonParse :: Value -> Maybe Response
+tryJsonParse blob =
     let
         ifromJSON' :: FromJSON a => Value -> Maybe a
         ifromJSON' x = case ifromJSON x of
             ISuccess a -> Just a
             _ -> Nothing
+    in
+    getFirst (mconcat (fmap First (
+        [ ResponseUser <$ ifromJSON' @ User blob
+        , ResponseUserRef <$ ifromJSON' @ UserRef blob
+        ])))
 
-        tryJsonParse blob =
-            getFirst (mconcat (fmap First (
-                [ ResponseUser <$ ifromJSON' @ User blob
-                , ResponseUserRef <$ ifromJSON' @ UserRef blob
-                ])))
-    in do
-    blob <- decodeStrict (encodeUtf8 x)
-    case blob of
-        Array x -> ResponseListOf <$> (tryJsonParse =<< x !? 0)
-        _ -> tryJsonParse blob
 
 -- | Writing the parser separate to keep the class decl short.
 userJsonParse :: Value -> Parser User
