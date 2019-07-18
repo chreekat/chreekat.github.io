@@ -22,6 +22,7 @@ old.mkShell {
       p.servant
       p.show-prettyprint
       p.template-haskell
+      p.unordered-containers
     ]))
   ];
 }

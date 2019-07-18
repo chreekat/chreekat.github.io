@@ -19,6 +19,7 @@ import Data.Aeson.Types
 import Data.ByteString.Lazy (toStrict)
 import Data.Char
 import Data.Foldable
+import Data.HashMap.Strict (elems)
 import Data.List
 import Data.Maybe
 import Data.Monoid
@@ -158,6 +159,15 @@ tryJsonParse blob =
         , ResponseUserRef <$ ifromJSON' @ UserRef blob
         ])))
 
+-- | Ok, some responses are returned as a map keyed by ID. We need to pick one
+-- and inspect it.
+--tryKeyedObjectParse :: Value -> Maybe Response
+--tryKeyedObjectParse (Object x) =
+--    let get1 = headMay . elems
+--        headMay (x:_) = Just x
+--        headMay _ = Nothing
+--    in KeyedResponse <$> (tryJsonParse =<< get1 x)
+--tryKeyedObjectParse _ = Nothing
 
 -- | Writing the parser separate to keep the class decl short.
 userJsonParse :: Value -> Parser User
@@ -180,6 +190,7 @@ data Response
     | ResponseUser
     | ResponseUserRef -- ^ returns the API key as well
     | ResponseListOf Response
+    | KeyedResponse Response
     | Wat Text
     deriving (Eq, Show, Ord)
 
