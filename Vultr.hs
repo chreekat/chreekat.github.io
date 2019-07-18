@@ -331,7 +331,7 @@ scrap :: Scraper Text a -> IO a
 scrap s = fromJust . flip scrapeStringLike s <$> T.readFile "vultr.html"
 
 main =
-    prettyPrint . filter (isWat . snd) . map (path &&& parseResponse . response . example) . concatMap endpoints
+    prettyPrint .  map (parseResponse . response . example) . concatMap endpoints
         =<< scrap (chroots apiGroupRoot scrapeApiGroup)
     where
     isWat (Wat _) = True
