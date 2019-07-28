@@ -120,7 +120,7 @@ parseResponse "No response, check HTTP result code." = NoResponse
 parseResponse " " = NoResponse -- classy
 parseResponse "\n" = NoResponse -- extra classy
 parseResponse x
-    | Just t <- parseResponseJson x = t
+    | Just t <- parseJson x = t
     | otherwise = Wat x
 
 -------------------------
@@ -152,23 +152,23 @@ sniffType (Object x) =
             s' ["SNAPSHOTID", "date_created", "description", "size", "status", "OSID", "APPID"]
         snapshotRef = s' ["SNAPSHOTID"]
     in if
-        | input == user -> Just ResponseUser
-        | input == userRef -> Just ResponseUserRef
-        | input == script -> Just ResponseScript
-        | input == scriptRef -> Just ResponseScriptRef
-        | input == sshKey -> Just ResponseSshKey
-        | input == sshKeyRef -> Just ResponseSshKeyRef
-        | input == snapshot -> Just ResponseSnapshot
-        | input == snapshotRef -> Just ResponseSnapshotRef
+        | input == user -> Just User
+        | input == userRef -> Just UserRef
+        | input == script -> Just Script
+        | input == scriptRef -> Just ScriptRef
+        | input == sshKey -> Just SshKey
+        | input == sshKeyRef -> Just SshKeyRef
+        | input == snapshot -> Just Snapshot
+        | input == snapshotRef -> Just SnapshotRef
         | otherwise -> Nothing
 sniffType _ = Nothing
 
 -- | Use speculative json parsing to figure out the type of a response.
-parseResponseJson :: Text -> Maybe Response
-parseResponseJson = tryJsonParse <=< decodeStrict . encodeUtf8
+parseJson :: Text -> Maybe Response
+parseJson = tryJsonParse <=< decodeStrict . encodeUtf8
 
 tryListParse :: Value -> Maybe Response
-tryListParse (Array x) = ResponseListOf <$> (tryJsonParse =<< x !? 0)
+tryListParse (Array x) = ListOf <$> (tryJsonParse =<< x !? 0)
 tryListParse _ = Nothing
 
 -- | See if we can't find a Response out of a Value
@@ -205,15 +205,15 @@ tryKeyedObjectParse _ = Nothing
 -- annotate Endpoint values.
 data Response
     = NoResponse
-    | ResponseUser
-    | ResponseUserRef -- ^ returns the API key as well
-    | ResponseListOf Response
-    | ResponseScript
-    | ResponseScriptRef
-    | ResponseSnapshot
-    | ResponseSnapshotRef
-    | ResponseSshKey
-    | ResponseSshKeyRef
+    | User
+    | UserRef -- ^ returns the API key as well
+    | ListOf Response
+    | Script
+    | ScriptRef
+    | Snapshot
+    | SnapshotRef
+    | SshKey
+    | SshKeyRef
     | KeyedResponse Response
     | Wat Text
     deriving (Eq, Show, Ord)
