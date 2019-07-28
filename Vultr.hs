@@ -153,7 +153,6 @@ tryJsonParse blob =
     getFirst (mconcat (fmap First (
         [ ResponseUser <$ ifromJSON' @ User blob
         , ResponseUserRef <$ ifromJSON' @ UserRef blob
-        , ResponseScript <$> fmap scriptType (ifromJSON' @ Script blob)
         , tryListParse blob
         -- , tryKeyedObjectParse blob
         ])))
@@ -331,7 +330,7 @@ scrap s = fromJust . flip scrapeStringLike s <$> T.readFile "vultr.html"
 
 main =
     prettyPrint
-        .  map (id &&& parseResponse . response . example) . concatMap endpoints
+        .  map (Prelude.id &&& parseResponse . response . example) . concatMap endpoints
         =<< scrap (chroots apiGroupRoot scrapeApiGroup)
     where
     isWat (Wat _) = True
