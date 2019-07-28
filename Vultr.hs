@@ -182,15 +182,6 @@ tryKeyedObjectParse (Object x) =
     in KeyedResponse <$> (tryJsonParse =<< get1 x)
 tryKeyedObjectParse _ = Nothing
 
--- | Writing the parser separate to keep the class decl short.
-userJsonParse :: Value -> Parser User
-userJsonParse = withObject "User" $ \v -> User
-    <$> v .: "USERID"
-    <*> v .: "name"
-    <*> v .: "email"
-    <*> (parseBool <$> v .: "api_enabled")
-    <*> v .: "acls"
-
 -------------
 -- Data types
 -------------
@@ -206,29 +197,6 @@ data Response
     | KeyedResponse Response
     | Wat Text
     deriving (Eq, Show, Ord)
-
--- | API data about a Vultr user.
-data User = User
-    { id :: Text
-    , name :: Text
-    , email :: Text
-    , apiEnabled :: Bool
-    , acls :: [Acl]
-    } deriving (Eq, Show, Ord)
-
--- | Needs custom parsing, fyi.
-instance FromJSON User where
-    parseJSON = userJsonParse
-
-data UserRef = UserRef
-    { id :: Text
-    , apiKey :: Text
-    } deriving (Eq, Show, Ord)
-
-instance FromJSON UserRef where
-    parseJSON = withObject "UserRef" $ \v -> UserRef
-        <$> v .: "USERID"
-        <*> v .: "api_key"
 
 -- | Just taking what we can get. This is not a rich transformation.
 data ParamType = ParamArray  | ParamInteger | ParamString
