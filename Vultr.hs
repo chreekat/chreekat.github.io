@@ -124,26 +124,22 @@ parseResponse x
 -- Parsing response types
 -------------------------
 --
--- There are response types that have to be reverse engineered. Then, we have to
--- figure out which endpoints return what sorts of responses. This is a bit of a
--- chicken and egg problem, for which I propose the following solution.
---
--- One by one, we'll hand-write type declarations for response types.
--- (Generating them would take an equal amount of custome code.) These decls
--- will be part of the eventual Vultr API. Then we can write code that detects a
--- response type and includes that info with the endpoint. Part of the detection
--- code can use the JSON instances for the response types, since the example
--- text we are parsing responses from is precisely JSON.
+-- There are response types that have to be reverse engineered. Then, we have
+-- to figure out which endpoints return what sorts of responses. This is a
+-- bit of a chicken and egg problem. The first plan was to hand-write type
+-- declarations and use JSON parsing to sniff response types, but that did not
+-- solve the circular dependency. The new proposal is to sniff the types without
+-- intermediate type definitions, just looking at the JSON itself.
 --
 -------------------------
 
 -- | Use speculative json parsing to figure out the type of a response.
 parseResponseJson :: Text -> Maybe Response
-parseResponseJson x = do
-    blob <- decodeStrict (encodeUtf8 x)
-    case blob of
-        Array x -> ResponseListOf <$> (tryJsonParse =<< x !? 0)
-        _ -> tryJsonParse blob
+parseResponseJson = tryJsonParse <=< decodeStrict . encodeUtf8
+
+tryListParse :: Value -> Maybe Response
+tryListParse (Array x) = ResponseListOf <$> (tryJsonParse =<< x !? 0)
+tryListParse _ = Nothing
 
 -- | See if we can't find a Response out of a Value
 tryJsonParse :: Value -> Maybe Response
@@ -157,17 +153,20 @@ tryJsonParse blob =
     getFirst (mconcat (fmap First (
         [ ResponseUser <$ ifromJSON' @ User blob
         , ResponseUserRef <$ ifromJSON' @ UserRef blob
+        , ResponseScript <$> fmap scriptType (ifromJSON' @ Script blob)
+        , tryListParse blob
+        -- , tryKeyedObjectParse blob
         ])))
 
 -- | Ok, some responses are returned as a map keyed by ID. We need to pick one
 -- and inspect it.
---tryKeyedObjectParse :: Value -> Maybe Response
---tryKeyedObjectParse (Object x) =
---    let get1 = headMay . elems
---        headMay (x:_) = Just x
---        headMay _ = Nothing
---    in KeyedResponse <$> (tryJsonParse =<< get1 x)
---tryKeyedObjectParse _ = Nothing
+tryKeyedObjectParse :: Value -> Maybe Response
+tryKeyedObjectParse (Object x) =
+    let get1 = headMay . elems
+        headMay (x:_) = Just x
+        headMay _ = Nothing
+    in KeyedResponse <$> (tryJsonParse =<< get1 x)
+tryKeyedObjectParse _ = Nothing
 
 -- | Writing the parser separate to keep the class decl short.
 userJsonParse :: Value -> Parser User
@@ -331,7 +330,8 @@ scrap :: Scraper Text a -> IO a
 scrap s = fromJust . flip scrapeStringLike s <$> T.readFile "vultr.html"
 
 main =
-    prettyPrint .  map (parseResponse . response . example) . concatMap endpoints
+    prettyPrint
+        .  map (id &&& parseResponse . response . example) . concatMap endpoints
         =<< scrap (chroots apiGroupRoot scrapeApiGroup)
     where
     isWat (Wat _) = True
