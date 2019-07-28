@@ -151,6 +151,46 @@ sniffType (Object x) =
         snapshot =
             s' ["SNAPSHOTID", "date_created", "description", "size", "status", "OSID", "APPID"]
         snapshotRef = s' ["SNAPSHOTID"]
+        ip6Reverse = s' ["ip", "reverse"]
+        privateNetwork = s' ["NETWORKID", "mac_address", "ip_address"]
+        osChange = s' ["OSID", "name", "arch", "family", "windows", "surcharge"]
+        ip6 = s' ["ip", "network", "network_size", "type"]
+        ip4 = s' ["ip", "netmask", "gateway", "type", "reverse"]
+        server = s' -- >_<
+            [ "SUBID"
+            , "os"
+            , "ram"
+            , "disk"
+            , "main_ip"
+            , "vcpu_count"
+            , "location"
+            , "DCID"
+            , "default_password"
+            , "date_created"
+            , "pending_charges"
+            , "status"
+            , "cost_per_month"
+            , "current_bandwidth_gb"
+            , "allowed_bandwidth_gb"
+            , "netmask_v4"
+            , "gateway_v4"
+            , "power_status"
+            , "server_state"
+            , "VPSPLANID"
+            , "v6_main_ip"
+            , "v6_network_size"
+            , "v6_network"
+            , "v6_networks"
+            , "label"
+            , "internal_ip"
+            , "kvm_url"
+            , "auto_backups"
+            , "tag"
+            , "OSID"
+            , "APPID"
+            , "FIREWALLGROUPID"
+            ]
+
     in if
         | input == user -> Just User
         | input == userRef -> Just UserRef
@@ -160,6 +200,12 @@ sniffType (Object x) =
         | input == sshKeyRef -> Just SshKeyRef
         | input == snapshot -> Just Snapshot
         | input == snapshotRef -> Just SnapshotRef
+        | input == ip6Reverse -> Just Ip6Reverse
+        | input == privateNetwork -> Just PrivateNetwork
+        | input == osChange -> Just OsChange
+        | input == ip6 -> Just Ip6
+        | input == ip4 -> Just Ip4
+        | input == server -> Just Server
         | otherwise -> Nothing
 sniffType _ = Nothing
 
@@ -205,16 +251,22 @@ tryKeyedObjectParse _ = Nothing
 -- annotate Endpoint values.
 data Response
     = NoResponse
-    | User
-    | UserRef -- ^ returns the API key as well
+    | KeyedResponse Response
+    | Ip4
+    | Ip6
+    | Ip6Reverse
     | ListOf Response
+    | OsChange
+    | PrivateNetwork
     | Script
     | ScriptRef
+    | Server
     | Snapshot
     | SnapshotRef
     | SshKey
     | SshKeyRef
-    | KeyedResponse Response
+    | User
+    | UserRef -- ^ returns the API key as well
     | Wat Text
     deriving (Eq, Show, Ord)
 
@@ -333,7 +385,8 @@ scrap s = fromJust . flip scrapeStringLike s <$> T.readFile "vultr.html"
 
 main =
     prettyPrint
-        . filter (isWat . snd)
+        . filter ((/= NoResponse) . snd)
+        -- . filter (isWat . snd)
         . map (path &&& parseResponse . response . example) . concatMap endpoints
         =<< scrap (chroots apiGroupRoot scrapeApiGroup)
     where
