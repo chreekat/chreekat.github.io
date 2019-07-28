@@ -20,7 +20,8 @@ import Data.Aeson.Types
 import Data.ByteString.Lazy (toStrict)
 import Data.Char
 import Data.Foldable
-import Data.HashMap.Strict (elems)
+import Data.HashMap.Strict (elems, keys)
+import Data.HashSet (HashSet)
 import Data.List
 import Data.Maybe
 import Data.Monoid
@@ -31,6 +32,7 @@ import GHC.Generics
 import Servant.API
 import Text.HTML.Scalpel.Core
 import Text.Show.Prettyprint
+import qualified Data.HashSet as Set
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Vector as V
@@ -134,6 +136,19 @@ parseResponse x
 --
 -------------------------
 
+-- | Sniff out response types based on the json object keys
+sniffType :: Value -> Maybe Response
+sniffType (Object x) =
+    let s' = Set.fromList
+        inputKeys = s' (keys x)
+        userKeys = s' ["USERID", "name", "email", "api_enabled", "acls"]
+        userRefKeys = s' ["USERID", "api_key"]
+    in if
+        | inputKeys == userKeys -> Just ResponseUser
+        | inputKeys == userRefKeys -> Just ResponseUserRef
+        | otherwise -> Nothing
+sniffType _ = Nothing
+
 -- | Use speculative json parsing to figure out the type of a response.
 parseResponseJson :: Text -> Maybe Response
 parseResponseJson = tryJsonParse <=< decodeStrict . encodeUtf8
@@ -152,10 +167,9 @@ tryJsonParse blob =
             _ -> Nothing
     in
     getFirst (mconcat (fmap First (
-        [ ResponseUser <$ ifromJSON' @ User blob
-        , ResponseUserRef <$ ifromJSON' @ UserRef blob
+        [ sniffType blob
         , tryListParse blob
-        -- , tryKeyedObjectParse blob
+        , tryKeyedObjectParse blob
         ])))
 
 -- | Ok, some responses are returned as a map keyed by ID. We need to pick one
