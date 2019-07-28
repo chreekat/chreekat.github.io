@@ -140,12 +140,26 @@ parseResponse x
 sniffType :: Value -> Maybe Response
 sniffType (Object x) =
     let s' = Set.fromList
-        inputKeys = s' (keys x)
-        userKeys = s' ["USERID", "name", "email", "api_enabled", "acls"]
-        userRefKeys = s' ["USERID", "api_key"]
+        input = s' (keys x)
+        user = s' ["USERID", "name", "email", "api_enabled", "acls"]
+        userRef = s' ["USERID", "api_key"]
+        script =
+            s' ["SCRIPTID", "date_created", "date_modified", "name", "type", "script"]
+        scriptRef = s' ["SCRIPTID"]
+        sshKey = s' ["SSHKEYID", "date_created", "name", "ssh_key"]
+        sshKeyRef = s' ["SSHKEYID"]
+        snapshot =
+            s' ["SNAPSHOTID", "date_created", "description", "size", "status", "OSID", "APPID"]
+        snapshotRef = s' ["SNAPSHOTID"]
     in if
-        | inputKeys == userKeys -> Just ResponseUser
-        | inputKeys == userRefKeys -> Just ResponseUserRef
+        | input == user -> Just ResponseUser
+        | input == userRef -> Just ResponseUserRef
+        | input == script -> Just ResponseScript
+        | input == scriptRef -> Just ResponseScriptRef
+        | input == sshKey -> Just ResponseSshKey
+        | input == sshKeyRef -> Just ResponseSshKeyRef
+        | input == snapshot -> Just ResponseSnapshot
+        | input == snapshotRef -> Just ResponseSnapshotRef
         | otherwise -> Nothing
 sniffType _ = Nothing
 
@@ -194,6 +208,12 @@ data Response
     | ResponseUser
     | ResponseUserRef -- ^ returns the API key as well
     | ResponseListOf Response
+    | ResponseScript
+    | ResponseScriptRef
+    | ResponseSnapshot
+    | ResponseSnapshotRef
+    | ResponseSshKey
+    | ResponseSshKeyRef
     | KeyedResponse Response
     | Wat Text
     deriving (Eq, Show, Ord)
