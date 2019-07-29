@@ -157,8 +157,10 @@ responseSniffer = TypeSniffer . Set.fromList . \case
     Ip6Reverse -> ["ip", "reverse"]
     PrivateNetwork -> ["NETWORKID", "mac_address", "ip_address"]
     OsTarget -> ["OSID", "name", "arch", "family", "windows", "surcharge"]
+    -- The ip types are sadly all pretty close
     Ip6 -> ["ip", "network", "network_size", "type"]
     Ip4 -> ["ip", "netmask", "gateway", "type", "reverse"]
+    Ip4BareMetal -> ["ip", "netmask", "gateway", "type"]
     -- >_<
     Server ->
         [ "SUBID"
@@ -215,6 +217,11 @@ responseSniffer = TypeSniffer . Set.fromList . \case
     FirewallGroupRef -> ["FIREWALLGROUPID"]
     SoaInfo -> ["nsprimary", "email"]
     Domain -> ["domain", "date_created"]
+    BlockStorage -> ["SUBID", "date_created", "cost_per_month", "status", "size_gb", "DCID", "attached_to_SUBID", "label"]
+    BareMetal -> ["SUBID", "os", "ram", "disk", "main_ip", "cpu_count", "location", "DCID", "default_password", "date_created", "status", "netmask_v4", "gateway_v4", "METALPLANID", "v6_networks", "label", "tag", "OSID", "APPID"]
+    Backup -> ["BACKUPID", "date_created", "description", "size", "status"]
+    AuthInfo -> ["acls", "email", "name"]
+    Account -> ["balance", "pending_charges", "last_payment_date", "last_payment_amount"]
 
 -- | Sniff out response types based on the json object keys
 sniffType :: Value -> Maybe ResponseTerm
@@ -290,15 +297,21 @@ data Response
 
 -- |
 data ResponseTerm
-    = AppInfo
+    = Account
     | AccountIso
+    | AppInfo
     | AppTarget
+    | AuthInfo
+    | Backup
     | BackupSchedule
     | Bandwidth
+    | BareMetal
+    | BlockStorage
     | Domain
     | FirewallGroup
     | FirewallGroupRef
     | Ip4
+    | Ip4BareMetal
     | Ip6
     | Ip6Reverse
     | IsoStatus
