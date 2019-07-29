@@ -18,9 +18,9 @@ old.mkShell {
     (h.ghcWithPackages (p: [
       p.ghcid
       p.hlint
+      p.pretty-simple
       p.scalpel-core
       p.servant
-      p.show-prettyprint
       p.template-haskell
       p.unordered-containers
     ]))

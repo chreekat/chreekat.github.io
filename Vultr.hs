@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -31,9 +32,10 @@ import Data.Vector ((!?))
 import GHC.Generics
 import Servant.API
 import Text.HTML.Scalpel.Core
-import Text.Show.Prettyprint
+import Text.Pretty.Simple
 import qualified Data.HashSet as Set
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import qualified Data.Text.IO as T
 import qualified Data.Vector as V
 
@@ -136,77 +138,99 @@ parseResponse x
 --
 -------------------------
 
--- | Sniff out response types based on the json object keys
-sniffType :: Value -> Maybe Response
-sniffType (Object x) =
-    let s' = Set.fromList
-        input = s' (keys x)
-        user = s' ["USERID", "name", "email", "api_enabled", "acls"]
-        userRef = s' ["USERID", "api_key"]
-        script =
-            s' ["SCRIPTID", "date_created", "date_modified", "name", "type", "script"]
-        scriptRef = s' ["SCRIPTID"]
-        sshKey = s' ["SSHKEYID", "date_created", "name", "ssh_key"]
-        sshKeyRef = s' ["SSHKEYID"]
-        snapshot =
-            s' ["SNAPSHOTID", "date_created", "description", "size", "status", "OSID", "APPID"]
-        snapshotRef = s' ["SNAPSHOTID"]
-        ip6Reverse = s' ["ip", "reverse"]
-        privateNetwork = s' ["NETWORKID", "mac_address", "ip_address"]
-        osChange = s' ["OSID", "name", "arch", "family", "windows", "surcharge"]
-        ip6 = s' ["ip", "network", "network_size", "type"]
-        ip4 = s' ["ip", "netmask", "gateway", "type", "reverse"]
-        server = s' -- >_<
-            [ "SUBID"
-            , "os"
-            , "ram"
-            , "disk"
-            , "main_ip"
-            , "vcpu_count"
-            , "location"
-            , "DCID"
-            , "default_password"
-            , "date_created"
-            , "pending_charges"
-            , "status"
-            , "cost_per_month"
-            , "current_bandwidth_gb"
-            , "allowed_bandwidth_gb"
-            , "netmask_v4"
-            , "gateway_v4"
-            , "power_status"
-            , "server_state"
-            , "VPSPLANID"
-            , "v6_main_ip"
-            , "v6_network_size"
-            , "v6_network"
-            , "v6_networks"
-            , "label"
-            , "internal_ip"
-            , "kvm_url"
-            , "auto_backups"
-            , "tag"
-            , "OSID"
-            , "APPID"
-            , "FIREWALLGROUPID"
-            ]
+newtype TypeSniffer = TypeSniffer (HashSet Text)
+    deriving (Eq)
 
-    in if
-        | input == user -> Just User
-        | input == userRef -> Just UserRef
-        | input == script -> Just Script
-        | input == scriptRef -> Just ScriptRef
-        | input == sshKey -> Just SshKey
-        | input == sshKeyRef -> Just SshKeyRef
-        | input == snapshot -> Just Snapshot
-        | input == snapshotRef -> Just SnapshotRef
-        | input == ip6Reverse -> Just Ip6Reverse
-        | input == privateNetwork -> Just PrivateNetwork
-        | input == osChange -> Just OsChange
-        | input == ip6 -> Just Ip6
-        | input == ip4 -> Just Ip4
-        | input == server -> Just Server
-        | otherwise -> Nothing
+-- | For a given response, these are the fields we expect to find.
+responseSniffer :: ResponseTerm -> TypeSniffer
+responseSniffer = TypeSniffer . Set.fromList . \case
+    User -> ["USERID", "name", "email", "api_enabled", "acls"]
+    UserRef -> ["USERID", "api_key"]
+    Script ->
+        ["SCRIPTID", "date_created", "date_modified", "name", "type", "script"]
+    ScriptRef -> ["SCRIPTID"]
+    SshKey -> ["SSHKEYID", "date_created", "name", "ssh_key"]
+    SshKeyRef -> ["SSHKEYID"]
+    Snapshot ->
+        ["SNAPSHOTID", "date_created", "description", "size", "status", "OSID", "APPID"]
+    SnapshotRef -> ["SNAPSHOTID"]
+    Ip6Reverse -> ["ip", "reverse"]
+    PrivateNetwork -> ["NETWORKID", "mac_address", "ip_address"]
+    OsTarget -> ["OSID", "name", "arch", "family", "windows", "surcharge"]
+    Ip6 -> ["ip", "network", "network_size", "type"]
+    Ip4 -> ["ip", "netmask", "gateway", "type", "reverse"]
+    -- >_<
+    Server ->
+        [ "SUBID"
+        , "os"
+        , "ram"
+        , "disk"
+        , "main_ip"
+        , "vcpu_count"
+        , "location"
+        , "DCID"
+        , "default_password"
+        , "date_created"
+        , "pending_charges"
+        , "status"
+        , "cost_per_month"
+        , "current_bandwidth_gb"
+        , "allowed_bandwidth_gb"
+        , "netmask_v4"
+        , "gateway_v4"
+        , "power_status"
+        , "server_state"
+        , "VPSPLANID"
+        , "v6_main_ip"
+        , "v6_network_size"
+        , "v6_network"
+        , "v6_networks"
+        , "label"
+        , "internal_ip"
+        , "kvm_url"
+        , "auto_backups"
+        , "tag"
+        , "OSID"
+        , "APPID"
+        , "FIREWALLGROUPID"
+        ]
+    IsoStatus -> ["state", "ISOID"]
+    UserData -> ["userdata"]
+    AppInfo -> ["app_info"]
+    ServerRef -> ["SUBID"]
+    Bandwidth -> ["incoming_bytes", "outgoing_bytes"]
+    BackupSchedule -> ["enabled", "cron_type", "next_scheduled_time_utc", "hour", "dow", "dom"]
+    AppTarget -> ["APPID", "name", "short_name", "deploy_name", "surcharge"]
+    ReservedIp -> ["SUBID", "DCID", "ip_type", "subnet", "subnet_size", "label", "attached_SUBID"]
+    Region -> ["DCID", "name", "country", "continent", "state", "ddos_protection", "block_storage", "regioncode"]
+    -- All the vps plans may have an optional field, "deprecated". These 'plan'
+    -- types are therefore fragile!
+    Vdc2Plan -> ["VPSPLANID", "name", "vcpu_count", "ram", "disk", "bandwidth", "price_per_month", "plan_type"]
+    VpsPlan -> ["VPSPLANID", "name", "vcpu_count", "ram", "disk", "bandwidth", "price_per_month", "windows", "plan_type", "available_locations"]
+    Os -> ["OSID", "name", "arch", "family", "windows"]
+    NetworkRef -> ["NETWORKID"]
+    PublicIso -> ["ISOID", "name", "description"]
+    AccountIso -> ["ISOID", "date_created", "filename", "size", "md5sum", "sha512sum", "status"]
+    FirewallGroup -> ["FIREWALLGROUPID", "description", "date_created", "date_modified", "instance_count", "rule_count", "max_rule_count"]
+    FirewallGroupRef -> ["FIREWALLGROUPID"]
+    SoaInfo -> ["nsprimary", "email"]
+    Domain -> ["domain", "date_created"]
+
+-- | Sniff out response types based on the json object keys
+sniffType :: Value -> Maybe ResponseTerm
+sniffType (Object x) =
+    let input = TypeSniffer (Set.fromList (keys x))
+    in
+    case
+    filter
+        ((== input) . snd)
+        (map (id &&& responseSniffer) [minBound ..])
+    of
+    [] -> Nothing
+    [(x,_)] -> Just x
+    ms -> (error . TL.unpack . pString)
+        ("The type sniffer found >1 match for an object.\n****  Object: "
+        <> show x <>"\n****  Matches these: " <> show (map fst ms))
 sniffType _ = Nothing
 
 -- | Use speculative json parsing to figure out the type of a response.
@@ -227,7 +251,8 @@ tryJsonParse blob =
             _ -> Nothing
     in
     getFirst (mconcat (fmap First (
-        [ sniffType blob
+        [ Term <$> sniffType blob
+        , ResponseInt <$> ifromJSON' blob
         , tryListParse blob
         , tryKeyedObjectParse blob
         ])))
@@ -246,29 +271,59 @@ tryKeyedObjectParse _ = Nothing
 -- Data types
 -------------
 
--- | This is the sum of possible response types from querying endpoints. Not to
--- be confused with the actual response types, i.e. 'User', this sum is used to
--- annotate Endpoint values.
+-- | This is the sum of possible response types from querying endpoints.
+--
+-- Not to be confused with the actual response types, i.e. 'User', this type is
+-- used to annotate Endpoint values. It is implemented as a grammar so that the
+-- real types (the "terms") can be specified in a total way as @[minBound ..]@.
 data Response
     = NoResponse
     | KeyedResponse Response
+    -- ^ This is a 'list' of values, redundantly keyed on their id.
+    | ListOf Response
+    | Term ResponseTerm
+    -- ^
+    | ResponseInt Int
+    -- ^ Just a bare int!
+    | Wat Text
+    deriving (Eq, Show, Ord)
+
+-- |
+data ResponseTerm
+    = AppInfo
+    | AccountIso
+    | AppTarget
+    | BackupSchedule
+    | Bandwidth
+    | Domain
+    | FirewallGroup
+    | FirewallGroupRef
     | Ip4
     | Ip6
     | Ip6Reverse
-    | ListOf Response
-    | OsChange
+    | IsoStatus
+    | NetworkRef
+    | Os
+    | OsTarget
     | PrivateNetwork
+    | PublicIso
+    | Region
+    | ReservedIp
     | Script
     | ScriptRef
     | Server
+    | ServerRef
     | Snapshot
     | SnapshotRef
+    | SoaInfo
     | SshKey
     | SshKeyRef
     | User
+    | UserData
     | UserRef -- ^ returns the API key as well
-    | Wat Text
-    deriving (Eq, Show, Ord)
+    | Vdc2Plan -- ^ No idea what this is just yet.
+    | VpsPlan
+    deriving (Eq, Show, Ord, Bounded, Enum)
 
 -- | Just taking what we can get. This is not a rich transformation.
 data ParamType = ParamArray  | ParamInteger | ParamString
@@ -384,10 +439,11 @@ scrap :: Scraper Text a -> IO a
 scrap s = fromJust . flip scrapeStringLike s <$> T.readFile "vultr.html"
 
 main =
-    prettyPrint
-        . filter ((/= NoResponse) . snd)
-        -- . filter (isWat . snd)
-        . map (path &&& parseResponse . response . example) . concatMap endpoints
+    pPrint
+        . filter (isWat . snd . snd)
+        -- . filter ((/= NoResponse) . snd. snd)
+        -- . filter (((&&) <$> (not . isWat) <*> (/= NoResponse)) . snd . snd)
+        . map (path &&& edescription &&& (parseResponse . response . example)) . concatMap endpoints
         =<< scrap (chroots apiGroupRoot scrapeApiGroup)
     where
     isWat (Wat _) = True
