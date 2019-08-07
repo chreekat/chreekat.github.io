@@ -270,9 +270,9 @@ tryJsonParse blob =
     in
     getFirst (mconcat (fmap First (
         [ Term <$> sniffType (mogrify blob)
-        , ResponseInt <$> ifromJSON' blob
         , tryListParse blob
         , tryKeyedObjectParse blob
+        , ResponseInt <$ ifromJSON' @ Int blob
         ])))
 
 -- | Ok, some responses are returned as a map keyed by ID. We need to pick one
@@ -301,7 +301,7 @@ data Response
     | ListOf Response
     | Term ResponseTerm
     -- ^ A "real" response term(inal). Except for bare ints, below.
-    | ResponseInt Int
+    | ResponseInt
     -- ^ Just a bare int!
     | Wat Text
     -- ^ Things we fail to understand.
