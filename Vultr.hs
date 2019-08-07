@@ -21,7 +21,7 @@ import Data.Aeson.Types
 import Data.ByteString.Lazy (toStrict)
 import Data.Char
 import Data.Foldable
-import Data.HashMap.Strict (elems, keys)
+import Data.HashMap.Strict (elems, keys, singleton)
 import Data.HashSet (HashSet)
 import Data.List
 import Data.Maybe
@@ -222,6 +222,7 @@ responseSniffer = TypeSniffer . Set.fromList . \case
     Backup -> ["BACKUPID", "date_created", "description", "size", "status"]
     AuthInfo -> ["acls", "email", "name"]
     Account -> ["balance", "pending_charges", "last_payment_date", "last_payment_amount"]
+    DnsSec -> ["dnssec*mogrify"]
 
 -- | Sniff out response types based on the json object keys
 sniffType :: Value -> Maybe ResponseTerm
@@ -239,6 +240,16 @@ sniffType (Object x) =
         ("The type sniffer found >1 match for an object.\n****  Object: "
         <> show x <>"\n****  Matches these: " <> show (map fst ms))
 sniffType _ = Nothing
+
+-- | But! Some values do not submit to simple sniffying. To deal with them, we
+-- will add some fake wrapper based on perilous, hodonk parsing.
+mogrify :: Value -> Value
+mogrify v@(String t)
+    | T.isPrefixOf "example.com IN DNSKEY" t
+    -- Fragile: relies on the first entry of the DnsSec entry being exactly what
+    -- it is.
+    = Object (singleton "dnssec*mogrify" v)
+mogrify v = v
 
 -- | Use speculative json parsing to figure out the type of a response.
 parseJson :: Text -> Maybe Response
@@ -258,7 +269,7 @@ tryJsonParse blob =
             _ -> Nothing
     in
     getFirst (mconcat (fmap First (
-        [ Term <$> sniffType blob
+        [ Term <$> sniffType (mogrify blob)
         , ResponseInt <$> ifromJSON' blob
         , tryListParse blob
         , tryKeyedObjectParse blob
@@ -289,13 +300,14 @@ data Response
     -- ^ This is a 'list' of values, redundantly keyed on their id.
     | ListOf Response
     | Term ResponseTerm
-    -- ^
+    -- ^ A "real" response term(inal). Except for bare ints, below.
     | ResponseInt Int
     -- ^ Just a bare int!
     | Wat Text
+    -- ^ Things we fail to understand.
     deriving (Eq, Show, Ord)
 
--- |
+-- | The list of "real" response term(inal)s.
 data ResponseTerm
     = Account
     | AccountIso
@@ -307,6 +319,7 @@ data ResponseTerm
     | Bandwidth
     | BareMetal
     | BlockStorage
+    | DnsSec
     | Domain
     | FirewallGroup
     | FirewallGroupRef
