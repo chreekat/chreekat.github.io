@@ -400,10 +400,11 @@ data Endpoint = Endpoint
     , requiredAccess :: Acl
     , example :: Example
     , parameters :: [Parameter]
+    , responseType :: Response
     } deriving (Eq, Show)
 
 -- | Useful for test
-nullEP = Endpoint (Path []) "" False Get None (Example "" "") []
+nullEP = Endpoint (Path []) "" False Get None (Example "" "") [] NoResponse
 
 -- | Simple wrapper over endpoint examples
 data Example = Example { request :: Text, response :: Text }
@@ -431,14 +432,16 @@ scrapeEndpoint = do
         )
     -- These ones aren't very distinguished
     [exReq, exResp, params] <- texts "code"
+    let ex = Example exReq exResp
     Endpoint
         <$> (parsePath <$> text ("h3" // "a"))
         <*> (parseString <$> text "p")
         <*> pure (parseBool key)
         <*> pure (parseMethod method)
         <*> pure (parseAcl acc)
-        <*> pure (Example exReq exResp)
+        <*> pure ex
         <*> pure (mapMaybe parseParameter (T.lines params))
+        <*> pure (parseResponse exResp)
     where
     scrape2ndTd =
         inSerial (replicateM_ 2 (seekNext (pure ())) >> seekNext (text "td"))

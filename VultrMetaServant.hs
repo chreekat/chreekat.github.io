@@ -5,6 +5,7 @@ module VultrMetaServant where
 
 import Data.Text (Text)
 import Servant.API
+import Text.Pretty.Simple
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
@@ -12,7 +13,7 @@ import Vultr hiding (main)
 
 -- All we need is a printer. We can print Endpoint and basically we're done.
 printEndpoint :: Endpoint -> Text
-printEndpoint (Endpoint p d a m r e ps)
+printEndpoint (Endpoint p d a m r e ps res)
     = printPath p
     <:> printAddDescription d
     <:> printApiHeader a
@@ -37,12 +38,17 @@ printApiHeader False = "Header' '['Strict, 'Optional] \"API-Key\" " <> apiKeyTy
 printAddDescription :: Text -> Text
 printAddDescription t = "Description " <> stringLit t
 
-main = T.putStrLn $ printEndpoint nullEP
-    { path = Path (T.words "v1 backup list")
-    , edescription = "List all backups on the current account. Required access: Subscriptions."
-    , needsAPIKey = True
-    , method = Get
-    }
+main =  do
+    pPrint x
+    T.putStrLn (printEndpoint x)
+    where
+    x =nullEP
+        { path = Path (T.words "v1 backup list")
+        , edescription = "List all backups on the current account. Required access: Subscriptions."
+        , needsAPIKey = True
+        , method = Get
+        , responseType = KeyedResponse (Term Backup)
+        }
 
 stringLit t = "\"" <> t <> "\""
 {-
