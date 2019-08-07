@@ -223,6 +223,11 @@ responseSniffer = TypeSniffer . Set.fromList . \case
     AuthInfo -> ["acls", "email", "name"]
     Account -> ["balance", "pending_charges", "last_payment_date", "last_payment_amount"]
     DnsSec -> ["dnssec*mogrify"]
+    FirewallRule -> ["rulenumber", "action", "protocol", "port", "subnet", "subnet_size", "notes"]
+    FirewallRuleRef -> ["rulenumber"]
+    AccountIsoRef -> ["ISOID"]
+    Network -> ["DCID", "NETWORKID", "date_created", "description", "v4_subnet", "v4_subnet_mask"]
+    BareMetalPlan -> ["METALPLANID", "name", "cpu_count", "ram", "disk", "bandwidth_tb", "price_per_month", "plan_type", "deprecated", "available_locations"]
 
 -- | Sniff out response types based on the json object keys
 sniffType :: Value -> Maybe ResponseTerm
@@ -318,6 +323,7 @@ data Response
 data ResponseTerm
     = Account
     | AccountIso
+    | AccountIsoRef
     | AppInfo
     | AppTarget
     | AuthInfo
@@ -325,16 +331,20 @@ data ResponseTerm
     | BackupSchedule
     | Bandwidth
     | BareMetal
+    | BareMetalPlan
     | BlockStorage
     | DnsSec
     | Domain
     | FirewallGroup
     | FirewallGroupRef
+    | FirewallRule
+    | FirewallRuleRef
     | Ip4
     | Ip4BareMetal
     | Ip6
     | Ip6Reverse
     | IsoStatus
+    | Network
     | NetworkRef
     | Os
     | OsTarget
