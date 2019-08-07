@@ -206,7 +206,7 @@ responseSniffer = TypeSniffer . Set.fromList . \case
     ReservedIp -> ["SUBID", "DCID", "ip_type", "subnet", "subnet_size", "label", "attached_SUBID"]
     Region -> ["DCID", "name", "country", "continent", "state", "ddos_protection", "block_storage", "regioncode"]
     -- All the vps plans may have an optional field, "deprecated". These 'plan'
-    -- types are therefore fragile!
+    -- types are therefore fragile! And possibly redundant!
     Vdc2Plan -> ["VPSPLANID", "name", "vcpu_count", "ram", "disk", "bandwidth", "price_per_month", "plan_type"]
     VpsPlan -> ["VPSPLANID", "name", "vcpu_count", "ram", "disk", "bandwidth", "price_per_month", "windows", "plan_type", "available_locations"]
     Os -> ["OSID", "name", "arch", "family", "windows"]
@@ -277,6 +277,13 @@ tryJsonParse blob =
 
 -- | Ok, some responses are returned as a map keyed by ID. We need to pick one
 -- and inspect it.
+--
+-- MOST instances of a keyed response are redundant: the item with key k also
+-- has k as one of its fields. I must use my eyeballs to spot the exceptions.
+-- They are: Ip4BareMetal (which shows up as KeyedResponse (ListOf (Term Ip4BareMetal)),
+-- which might be a useful trend?), Ip6 (yes!), Ip4, Ip6Reverse. So, yes,
+-- the Ip* response types are the exceptions, all of which are keyed on SUBID,
+-- and all of which are a KeyedResponse of a List.
 tryKeyedObjectParse :: Value -> Maybe Response
 tryKeyedObjectParse (Object x) =
     let get1 = headMay . elems
