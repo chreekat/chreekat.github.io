@@ -17,8 +17,7 @@ printEndpoint (Endpoint p d a m r e ps res)
     = printPath p
     <:> printAddDescription d
     <:> printApiHeader a
-    <:> printMethod res m
-        <> " '[JSON] "
+    <:> printMethod m
         <> printResponse res
 
 printResponse NoResponse = "NoContent"
@@ -33,9 +32,8 @@ printRefType (Term b) = T.pack (show b) <> "Id"
 
 a <:> b = a <> " :> " <> b
 
-printMethod :: Response -> Method -> Text
-printMethod NoResponse = (<> "NoContent") . T.pack . show
-printMethod _ = T.pack . show
+printMethod :: Method -> Text
+printMethod = (<> " '[JSON] ") . T.pack . show
 
 apiKeyTy = "ApiKey"
 
