@@ -494,13 +494,15 @@ apiGroupRoot = div_ ["main-content"] // div_ ["content-row"]
 scrap :: Scraper Text a -> IO a
 scrap s = fromJust . flip scrapeStringLike s <$> T.readFile "vultr.html"
 
+muhEndpointGroups = scrap (chroots apiGroupRoot scrapeApiGroup)
+
 main =
     pPrint
         . filter (isWat . snd . snd)
         -- . filter ((/= NoResponse) . snd. snd)
         -- . filter (((&&) <$> (not . isWat) <*> (/= NoResponse)) . snd . snd)
         . map (path &&& edescription &&& (parseResponse . response . example)) . concatMap endpoints
-        =<< scrap (chroots apiGroupRoot scrapeApiGroup)
+        =<< muhEndpointGroups
     where
     isWat (Wat _) = True
     isWat _ = False

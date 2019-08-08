@@ -50,7 +50,12 @@ printApiHeader False = "Header' '['Strict, 'Optional] \"API-Key\" " <> apiKeyTy
 printAddDescription :: Text -> Text
 printAddDescription t = "Description " <> stringLit t
 
-main =  do
+main =
+    pPrint
+    . map printEndpoint . concatMap endpoints
+    =<< muhEndpointGroups
+
+mainX =  do
     pPrint x
     T.putStrLn (printEndpoint x)
     where
