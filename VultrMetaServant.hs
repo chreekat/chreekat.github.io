@@ -17,13 +17,25 @@ printEndpoint (Endpoint p d a m r e ps res)
     = printPath p
     <:> printAddDescription d
     <:> printApiHeader a
-    <:> printMethod m
-    <:>  "LOL"
+    <:> printMethod res m
+        <> " '[JSON] "
+        <> printResponse res
+
+printResponse NoResponse = "NoContent"
+printResponse ResponseInts = "[Int]"
+printResponse (ListOf b) = "[" <> printResponse b <> "]"
+printResponse (KeyedResponse (ListOf b)) = "(Map SubId " <> printResponse b <> ")"
+printResponse (KeyedResponse b) = "(Map " <> printRefType b <> " " <> printResponse b <> ")"
+printResponse (Term t) = T.pack (show t)
+
+
+printRefType (Term b) = T.pack (show b) <> "Id"
 
 a <:> b = a <> " :> " <> b
 
-printMethod :: Method -> Text
-printMethod = T.pack . show
+printMethod :: Response -> Method -> Text
+printMethod NoResponse = (<> "NoContent") . T.pack . show
+printMethod _ = T.pack . show
 
 apiKeyTy = "ApiKey"
 
