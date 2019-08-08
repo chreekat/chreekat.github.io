@@ -252,32 +252,40 @@ mogrify :: Value -> Value
 mogrify v@(String t)
     | T.isPrefixOf "example.com IN DNSKEY" t
     -- Fragile: relies on the first entry of the DnsSec entry being exactly what
-    -- it is.
+    -- it is. (Which, unless DNS entries can elide their TTL, is ill-formatted.)
     = Object (singleton "dnssec*mogrify" v)
 mogrify v = v
 
 -- | Use speculative json parsing to figure out the type of a response.
+--
+-- We look for a list of ints at the top level, since it otherwise conflicts
+-- with ResponseList (and a bare int is usually misleading to the rest of the
+-- sniffers).
 parseJson :: Text -> Maybe Response
-parseJson = tryJsonParse <=< decodeStrict . encodeUtf8
-
-tryListParse :: Value -> Maybe Response
-tryListParse (Array x) = ListOf <$> (tryJsonParse =<< x !? 0)
-tryListParse _ = Nothing
-
--- | See if we can't find a Response out of a Value
-tryJsonParse :: Value -> Maybe Response
-tryJsonParse blob =
+parseJson =
     let
         ifromJSON' :: FromJSON a => Value -> Maybe a
         ifromJSON' x = case ifromJSON x of
             ISuccess a -> Just a
             _ -> Nothing
+
+        parseValue' blob =
+            ResponseInts <$ ifromJSON' @ [Int] blob
+            <|> parseValue blob
     in
+    parseValue' <=< decodeStrict . encodeUtf8
+
+tryListParse :: Value -> Maybe Response
+tryListParse (Array x) = ListOf <$> (parseValue =<< x !? 0)
+tryListParse _ = Nothing
+
+-- | See if we can't find a Response out of a Value.
+parseValue :: Value -> Maybe Response
+parseValue blob =
     getFirst (mconcat (fmap First (
         [ Term <$> sniffType (mogrify blob)
         , tryListParse blob
         , tryKeyedObjectParse blob
-        , ResponseInt <$ ifromJSON' @ Int blob
         ])))
 
 -- | Ok, some responses are returned as a map keyed by ID. We need to pick one
@@ -294,7 +302,7 @@ tryKeyedObjectParse (Object x) =
     let get1 = headMay . elems
         headMay (x:_) = Just x
         headMay _ = Nothing
-    in KeyedResponse <$> (tryJsonParse =<< get1 x)
+    in KeyedResponse <$> (parseValue =<< get1 x)
 tryKeyedObjectParse _ = Nothing
 
 -------------
@@ -313,8 +321,8 @@ data Response
     | ListOf Response
     | Term ResponseTerm
     -- ^ A "real" response term(inal). Except for bare ints, below.
-    | ResponseInt
-    -- ^ Just a bare int!
+    | ResponseInts
+    -- ^ A list of ints
     | Wat Text
     -- ^ Things we fail to understand.
     deriving (Eq, Show, Ord)
