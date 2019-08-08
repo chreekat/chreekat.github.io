@@ -228,6 +228,7 @@ responseSniffer = TypeSniffer . Set.fromList . \case
     AccountIsoRef -> ["ISOID"]
     Network -> ["DCID", "NETWORKID", "date_created", "description", "v4_subnet", "v4_subnet_mask"]
     BareMetalPlan -> ["METALPLANID", "name", "cpu_count", "ram", "disk", "bandwidth_tb", "price_per_month", "plan_type", "deprecated", "available_locations"]
+    DnsRecord -> ["type", "name", "data", "priority", "RECORDID", "ttl"]
 
 -- | Sniff out response types based on the json object keys
 sniffType :: Value -> Maybe ResponseTerm
@@ -341,6 +342,7 @@ data ResponseTerm
     | BareMetal
     | BareMetalPlan
     | BlockStorage
+    | DnsRecord
     | DnsSec
     | Domain
     | FirewallGroup
