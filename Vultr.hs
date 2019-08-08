@@ -489,10 +489,10 @@ main =
         . filter (isWat . snd . snd)
         -- . filter ((/= NoResponse) . snd. snd)
         -- . filter (((&&) <$> (not . isWat) <*> (/= NoResponse)) . snd . snd)
-        . map (path &&& response . example &&& (parseResponse . response . example)) . concatMap endpoints
+        . map (path &&& edescription &&& (parseResponse . response . example)) . concatMap endpoints
         =<< scrap (chroots apiGroupRoot scrapeApiGroup)
     where
-    isWat (KeyedResponse _) = True
+    isWat (Wat _) = True
     isWat _ = False
 
 newtype ApiKey = ApiKey Text
