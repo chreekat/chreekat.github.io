@@ -15,7 +15,7 @@ import Vultr hiding (main)
 printEndpoint :: Endpoint -> Text
 printEndpoint (Endpoint p d a m r e ps res)
     = printPath p
-    <:> printAddDescription d
+    <:> printAsDescription d
     <:> printApiHeader a
     <:> printMethod m
         <> printResponse res
@@ -44,9 +44,9 @@ printApiHeader :: Bool -> Text
 printApiHeader True = "Header \"API-Key\" " <> apiKeyTy
 printApiHeader False = "Header' '['Strict, 'Optional] \"API-Key\" " <> apiKeyTy
 
--- | Add a description to a printed thing.
-printAddDescription :: Text -> Text
-printAddDescription t = "Description " <> stringLit t
+-- | Use a text as a Description
+printAsDescription :: Text -> Text
+printAsDescription = ("Description " <>) . stringLit
 
 main =
     pPrint
