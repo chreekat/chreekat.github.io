@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 -- | Gonna generate me some Haskell code, string-wise. Template Haskell sux
 module VultrMetaServant where
@@ -10,6 +11,17 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
 import Vultr hiding (main)
+
+-- (Just) print an ApiGroup, which (just) delegates
+printApiGroup :: ApiGroup -> Text
+printApiGroup ApiGroup {name, endpoints}
+    = printAsSummary name <:> theEndpoints endpoints
+    where
+    theEndpoints
+        = parens
+        . T.intercalate " :<|> "
+        . map (parens . printEndpoint)
+    parens s = "(" <> s <> ")"
 
 -- All we need is a printer. We can print Endpoint and basically we're done.
 printEndpoint :: Endpoint -> Text
@@ -47,6 +59,10 @@ printApiHeader False = "Header' '['Strict, 'Optional] \"API-Key\" " <> apiKeyTy
 -- | Use a text as a Description
 printAsDescription :: Text -> Text
 printAsDescription = ("Description " <>) . stringLit
+
+-- | Use a text as a Summary
+printAsSummary :: Text -> Text
+printAsSummary = ("Summary " <>) . stringLit
 
 main =
     pPrint
