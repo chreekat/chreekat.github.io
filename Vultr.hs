@@ -96,7 +96,7 @@ parseParameter x
             "(optional," -> param ParamString (typ : desc)
             "Password"   -> param ParamString (typ : desc)
             _            -> param (parseParamType typ) desc
-      in p ("optional" `T.isInfixOf` x)
+      in p ("(optional)" `T.isInfixOf` x)
     | otherwise = failParse "parseParameter" x
 
 -- | E.g. "array"
