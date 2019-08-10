@@ -9,6 +9,8 @@ import Servant.API
 import Text.Pretty.Simple
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.IO as TL
 
 import Vultr hiding (main)
 
@@ -65,8 +67,8 @@ printAsSummary :: Text -> Text
 printAsSummary = ("Summary " <>) . stringLit
 
 main =
-    pPrint
-    . map printEndpoint . concatMap endpoints
+    mapM_ TL.putStrLn
+    . map (pString . T.unpack . printApiGroup)
     =<< muhEndpointGroups
 
 mainX =  do
