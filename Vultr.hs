@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StandaloneDeriving #-}
@@ -241,7 +240,7 @@ sniffType (Object x) =
         (map (id &&& responseSniffer) [minBound ..])
     of
     [] -> Nothing
-    [(x,_)] -> Just x
+    [(y,_)] -> Just y
     ms -> (error . TL.unpack . pString)
         ("The type sniffer found >1 match for an object.\n****  Object: "
         <> show x <>"\n****  Matches these: " <> show (map fst ms))

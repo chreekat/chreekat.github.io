@@ -57,7 +57,7 @@ mainX =  do
     pPrint x
     T.putStrLn (printEndpoint x)
     where
-    x =nullEP
+    x = nullEP
         { path = Path (T.words "v1 backup list")
         , edescription = "List all backups on the current account. Required access: Subscriptions."
         , needsAPIKey = True
