@@ -34,8 +34,8 @@ import Text.HTML.Scalpel.Core
 import Text.Pretty.Simple
 import qualified Data.HashSet as Set
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
 import qualified Data.Text.IO as T
+import qualified Data.Text.Lazy as TL
 import qualified Data.Vector as V
 
 -------------------
@@ -54,6 +54,7 @@ failParse who what = error (T.unpack who ++ " couldn't parse: " ++ T.unpack what
 -----------------
 -- Hodonk parsers
 -----------------
+-- Hodonk, adj.: Of questionable merit. Scrappy; written in haste.
 
 -- | "Yes", "No"
 parseBool "Yes" = True
@@ -79,15 +80,15 @@ parseAcl "upgrade" = Upgrade
 parseAcl "support" = Support
 parseAcl x = failParse "parseAcl" x
 
--- | Parse a parameter line, which usually looks like
+-- | Parse a parameter line, which usually looks like:
 --
--- @name string (optional) New name for the SSH key@
+--     name string (optional) New name for the SSH key
 parseParameter x
     | x == "No parameters." = Nothing
     | (nam : typ : desc) <- T.words x
     -- Found two "bugs" in the page! :D Most param lines have the form
     --
-    -- name type description
+    --     name type description
     --
     -- But a few are missing their type. We manually patch it in with static
     -- matches.
