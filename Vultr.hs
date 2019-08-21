@@ -121,9 +121,7 @@ parseResponse :: Text -> Response
 parseResponse "No response, check HTTP result code." = NoResponse
 parseResponse " " = NoResponse -- classy
 parseResponse "\n" = NoResponse -- extra classy
-parseResponse x
-    | Just t <- parseJson x = t
-    | otherwise = Wat x
+parseResponse x = (fromMaybe . Wat <*> parseJson) x
 
 -------------------------
 -- Parsing response types
