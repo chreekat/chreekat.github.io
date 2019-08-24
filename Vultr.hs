@@ -17,7 +17,7 @@ import Control.Monad
 import Data.Aeson
 import Data.Aeson.Internal
 import Data.Aeson.Types
-import Data.ByteString.Lazy (toStrict)
+import Data.ByteString.Lazy (toStrict, fromStrict)
 import Data.Char
 import Data.Foldable
 import Data.HashMap.Strict (elems, keys, singleton)
@@ -438,6 +438,22 @@ data Example = Example { request :: Text, response :: Text }
 -- | Groups of endpoints, kept around for documentation purposes.
 data ApiGroup = ApiGroup { name :: Text, endpoints :: [Endpoint] }
     deriving (Eq, Show)
+
+-----------------
+-- Hodonk lensies
+-----------------
+
+-- | I need to get into the lists of keys in the response examples in order to
+-- enumerate the set of them. I'll use this to go through and assign types to
+-- all of them, manually.
+responseParameterKeysLens :: Endpoint -> [Text]
+responseParameterKeysLens
+    = maybe [] keys
+    . decode @ Object
+    . (fromStrict . encodeUtf8)
+    -- ^ Strict Text to lazy ByteString
+    . response
+    . example
 
 -----------
 -- Scrapers
