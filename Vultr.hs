@@ -17,10 +17,10 @@ import Control.Monad
 import Data.Aeson
 import Data.Aeson.Internal
 import Data.Aeson.Types
-import Data.ByteString.Lazy (toStrict, fromStrict)
+import Data.ByteString.Lazy (ByteString, toStrict, fromStrict)
 import Data.Char
 import Data.Foldable
-import Data.HashMap.Strict (elems, keys, singleton)
+import Data.HashMap.Strict (HashMap, elems, keys, singleton)
 import Data.HashSet (HashSet)
 import Data.List
 import Data.Maybe
@@ -28,10 +28,12 @@ import Data.Monoid
 import Data.Text (Text)
 import Data.Text.Encoding
 import Data.Vector ((!?))
+import Debug.Trace
 import GHC.Generics
 import Servant.API
 import Text.HTML.Scalpel.Core
 import Text.Pretty.Simple
+import qualified Data.HashMap.Strict as Map
 import qualified Data.HashSet as Set
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -299,8 +301,6 @@ parseValue blob =
 tryKeyedObjectParse :: Value -> Maybe Response
 tryKeyedObjectParse (Object x) =
     let get1 = headMay . elems
-        headMay (x:_) = Just x
-        headMay _ = Nothing
     in KeyedResponse <$> (parseValue =<< get1 x)
 tryKeyedObjectParse _ = Nothing
 
@@ -443,17 +443,43 @@ data ApiGroup = ApiGroup { name :: Text, endpoints :: [Endpoint] }
 -- Hodonk lensies
 -----------------
 
+
+tracePrintBs p = trace (TL.unpack (pBs p)) p
+pBs = pString . T.unpack . decodeUtf8 . toStrict
+
 -- | I need to get into the lists of keys in the response examples in order to
 -- enumerate the set of them. I'll use this to go through and assign types to
 -- all of them, manually.
 responseParameterKeysLens :: Endpoint -> [Text]
 responseParameterKeysLens
-    = maybe [] keys
-    . decode @ Object
-    . (fromStrict . encodeUtf8)
-    -- ^ Strict Text to lazy ByteString
-    . response
-    . example
+    = lensy id . responseType
+    <*> (fromStrict . encodeUtf8) . response . example
+  where
+    -- Use the Response parse to build a lens to the keys.
+    lensy :: (ByteString -> ByteString) -> Response -> ByteString -> [Text]
+    lensy f NoResponse = const [] . f
+    lensy f (KeyedResponse v) = 
+        lensy
+            ((maybe
+                (error $ "Couldn't read KeyedResponse keys " ++ show v)
+                (fromStrict . encodeUtf8))
+            . (headMay . Map.elems <=< decode @ (HashMap Text Text) . tracePrintBs)
+            . f)
+            v
+    lensy f (ListOf v) =
+        lensy
+            ((maybe
+                (error $ "Couldn't read ListOf vals " ++ show v)
+                (fromStrict . encodeUtf8))
+            . (headMay <=< decode @ [Text])
+            . f)
+            v
+    lensy f (Term _) =
+        maybe (error "Couldn't read ResponseTerm's keys ") Map.keys
+        . decode @ Object
+        . f
+    lensy f ResponseInts = const [] . f
+    lensy f (Wat t) = error ("lensy Wat: " ++ T.unpack t)
 
 -----------
 -- Scrapers
@@ -495,6 +521,10 @@ scrapeApiGroup =
 
 -- helpers
 
+-- | Why import when you can not?
+headMay (x:_) = Just x
+headMay _ = Nothing
+
 -- | Helper that seems pretty natural to me
 guardedBy :: (Monad f, Alternative f) => f a -> (a -> Bool) -> f a
 x `guardedBy` b = do
@@ -512,10 +542,10 @@ muhEndpointGroups = scrap (chroots apiGroupRoot scrapeApiGroup)
 
 main =
     pPrint
-        . filter (isWat . snd . snd)
+        -- . filter (isWat . snd . snd)
         -- . filter ((/= NoResponse) . snd. snd)
         -- . filter (((&&) <$> (not . isWat) <*> (/= NoResponse)) . snd . snd)
-        . map (path &&& edescription &&& (parseResponse . response . example)) . concatMap endpoints
+        . map (path &&& edescription &&& responseParameterKeysLens) . concatMap endpoints
         =<< muhEndpointGroups
     where
     isWat (Wat _) = True
